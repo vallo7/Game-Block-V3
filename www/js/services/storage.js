@@ -53,7 +53,13 @@ export const Storage = {
     } catch (error) {}
   },
   getSettings() {
-    const defaults = SETTINGS_DEFAULTS;
+    // Copie fraîche à chaque appel : SETTINGS_DEFAULTS est un objet
+    // partagé venu de la config, il ne faut jamais le renvoyer tel
+    // quel (Settings.data le mute ensuite abondamment — adsBlocked,
+    // musicVolume... — ce qui corromprait la config partagée si on
+    // renvoyait la même référence à chaque fois, comme le faisait
+    // une version intermédiaire de ce fichier).
+    const defaults = { ...SETTINGS_DEFAULTS };
     try {
       const raw = localStorage.getItem(this.settingsKey) || localStorage.getItem(this.legacyKeys.settings);
       if (!raw) return defaults;
