@@ -177,7 +177,7 @@ export const GameAudio = {
     if (this.musicLoading) return;
     this.musicLoading = true;
 
-    fetch("music.mp3")
+    fetch("audio/music.mp3")
       .then(response => {
         if (!response.ok) throw new Error("http");
         return response.arrayBuffer();
@@ -573,3 +573,4 @@ export const GameAudio = {
     this.playTone(base * 2, { duration: 0.3, type: "sine", gain: 0.32, delay: 0.34 });
   }
 };
+
