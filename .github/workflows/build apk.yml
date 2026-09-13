@@ -22,6 +22,37 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prepare www assets (img, audio, music)
+        run: |
+          # img/ et audio/ vivent à la racine du dépôt (frères de www/),
+          # mais Capacitor n'empaquette que webDir ("www"). On les copie
+          # donc dans www/ avant tout build/sync, sans toucher à leur
+          # emplacement dans le dépôt lui-même.
+          mkdir -p www/img www/audio
+
+          if [ -d img ]; then
+            cp -R img/. www/img/
+            echo "img/ copié dans www/img/"
+          else
+            echo "Attention : dossier img/ introuvable à la racine du dépôt."
+          fi
+
+          if [ -d audio ]; then
+            cp -R audio/. www/audio/
+            echo "audio/ copié dans www/audio/"
+          else
+            echo "Attention : dossier audio/ introuvable à la racine du dépôt."
+          fi
+
+          if [ -f music.mp3 ]; then
+            cp music.mp3 www/music.mp3
+            echo "music.mp3 (racine) copié dans www/music.mp3"
+          elif [ -f www/music.mp3 ]; then
+            echo "music.mp3 déjà présent dans www/"
+          else
+            echo "Attention : music.mp3 introuvable (ni à la racine, ni dans www/)."
+          fi
+
       - name: Build web assets
         run: npm run build --if-present
 
@@ -99,14 +130,21 @@ jobs:
 
       - name: Generate crisp app icon
         run: |
+          ICON_SRC=""
           if [ -f icon.png ]; then
+            ICON_SRC="icon.png"
+          elif [ -f img/icon.png ]; then
+            ICON_SRC="img/icon.png"
+          fi
+
+          if [ -n "$ICON_SRC" ]; then
             rm -rf android/app/src/main/res/mipmap-anydpi-v26
 
-            W=$(identify -format "%w" icon.png)
-            H=$(identify -format "%h" icon.png)
+            W=$(identify -format "%w" "$ICON_SRC")
+            H=$(identify -format "%h" "$ICON_SRC")
             S=$(( W < H ? W : H ))
 
-            convert icon.png -gravity center -crop ${S}x${S}+0+0 +repage /tmp/icon_square.png
+            convert "$ICON_SRC" -gravity center -crop ${S}x${S}+0+0 +repage /tmp/icon_square.png
             convert /tmp/icon_square.png -resize 1024x1024 /tmp/icon_1024.png
 
             for entry in "48 mdpi" "72 hdpi" "96 xhdpi" "144 xxhdpi" "192 xxxhdpi"; do
@@ -120,9 +158,9 @@ jobs:
               cp "$dir/ic_launcher.png" "$dir/ic_launcher_round.png"
             done
 
-            echo "Custom icon generated."
+            echo "Custom icon generated (source: $ICON_SRC)."
           else
-            echo "icon.png not found, keeping default icon."
+            echo "icon.png not found (checked ./icon.png and img/icon.png), keeping default icon."
           fi
 
       - name: White native splash
