@@ -44,13 +44,10 @@ jobs:
             echo "Attention : dossier audio/ introuvable à la racine du dépôt."
           fi
 
-          if [ -f music.mp3 ]; then
-            cp music.mp3 www/music.mp3
-            echo "music.mp3 (racine) copié dans www/music.mp3"
-          elif [ -f www/music.mp3 ]; then
-            echo "music.mp3 déjà présent dans www/"
+          if [ -f www/audio/music.mp3 ]; then
+            echo "music.mp3 trouvé dans audio/ (musique de fond)."
           else
-            echo "Attention : music.mp3 introuvable (ni à la racine, ni dans www/)."
+            echo "Attention : audio/music.mp3 introuvable — la musique de fond utilisera le repli synthétisé."
           fi
 
       - name: Build web assets
