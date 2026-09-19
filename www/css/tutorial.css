@@ -1,0 +1,159 @@
+/*
+  css/tutorial.css
+  --------------------------------------------------------------------
+  Tutoriel de première ouverture : spotlight sur le bouton Classic,
+  verrouillage du menu/jeu pendant la séquence, gant animé, légendes
+  détachées, et carte de sortie "GAME ON!". Le toast hors-ligne des
+  pubs (.ad-toast) vit ici car il partage le même style de badge que
+  la légende de tutoriel.
+  --------------------------------------------------------------------
+*/
+#menuScreen.tutorial-spotlight .menu-hero,
+#menuScreen.tutorial-spotlight .mode-card-img.locked {
+  opacity: 0.3;
+  filter: saturate(0.4);
+  transition: opacity 360ms ease, filter 360ms ease;
+}
+body.tutorial-locked .bottom-actions-row,
+body.tutorial-locked .ad-row {
+  opacity: 0.3;
+  filter: saturate(0.4);
+  pointer-events: none;
+  transition: opacity 360ms ease, filter 360ms ease;
+}
+#classicModeBtn.tutorial-pending {
+  pointer-events: none;
+}
+#classicModeBtn.tutorial-pulse {
+  animation: tutorialTargetPulse 1.3s ease-in-out infinite;
+  box-shadow:
+    var(--candy-inset),
+    var(--shadow),
+    var(--chunk),
+    0 0 0 5px rgba(255, 255, 255, 0.4),
+    0 0 46px rgba(255, 255, 255, 0.6);
+}
+body.tutorial-locked-game #settingsBtn,
+body.tutorial-locked-game .best-score,
+body.tutorial-locked-game .available-pill {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 360ms ease;
+}
+.tutorial-glove {
+  position: fixed;
+  z-index: 150;
+  width: 92px;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.4));
+  animation: tutorialTap 1.2s ease-in-out infinite;
+}
+.tutorial-glove::after {
+  content: "";
+  position: absolute;
+  left: 17%;
+  top: 1%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: tutorialPing 1.2s ease-out infinite;
+}
+.ad-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 12px);
+  z-index: 175;
+  background: #0a0c4d;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), 0 0 0 3px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+.ad-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.tutorial-caption {
+  position: fixed;
+  left: 50%;
+  top: calc(14px + env(safe-area-inset-top));
+  transform: translate(-50%, -14px);
+  z-index: 155;
+  background: #0a0c4d;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), 0 0 0 3px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+.tutorial-caption.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.tutorial-outro {
+  position: fixed;
+  inset: 0;
+  z-index: 170;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 77, 0.38);
+  opacity: 0;
+  animation: tutorialOutroFadeIn 260ms ease forwards;
+}
+.tutorial-outro.out {
+  animation: tutorialOutroFadeOut 240ms ease forwards;
+}
+.tutorial-outro-card {
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  padding: 22px 40px;
+  border-radius: 26px;
+  box-shadow: var(--candy-inset), var(--shadow), var(--chunk), 0 0 0 4px #0a0c4d;
+  transform: scale(0.4) rotate(-4deg);
+  opacity: 0;
+  animation:
+    tutorialOutroPop 620ms cubic-bezier(0.22, 1, 0.36, 1) 80ms forwards,
+    tutorialOutroPulse 1.15s 760ms infinite ease-in-out;
+}
+@keyframes tutorialTargetPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@keyframes tutorialTap {
+  0%, 100%, 30%, 65% { transform: translate(-17%, -1%) scale(1); }
+  12% { transform: translate(-17%, 9%) scale(0.94); }
+}
+@keyframes tutorialPing {
+  0%, 25% { transform: scale(0.3); opacity: 0.9; }
+  75%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes tutorialOutroFadeIn { to { opacity: 1; } }
+@keyframes tutorialOutroFadeOut { to { opacity: 0; } }
+@keyframes tutorialOutroPop {
+  0% { transform: scale(0.4) rotate(-4deg); opacity: 0; }
+  60% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+  80% { transform: scale(0.96) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes tutorialOutroPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.035) rotate(0deg); }
+}
