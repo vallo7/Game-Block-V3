@@ -18,9 +18,11 @@
   showGame) est maintenant passée à LoadingScreen.run() via
   onBeforeReveal plutôt qu'appelée après coup — elle s'exécute donc
   pendant que le rideau de chargement est encore 100% opaque, jamais
-  pendant que celui-ci se retire (voir ui/loading.js). Chaque écran de
-  chargement dure au moins 2 secondes (minDuration), qu'il y ait ou non
-  des assets à précharger.
+  pendant que celui-ci se retire (voir ui/loading.js). Les transitions
+  en jeu (goToGame/goToMenu) durent au moins 2 secondes (minDuration) ;
+  le tout premier chargement au démarrage (bootLoad) est plus court
+  (900ms) car il n'a pas le même enjeu de "reveal" qu'une transition en
+  jeu — juste éviter un flash si tout est déjà en cache.
   --------------------------------------------------------------------
 */
 import { Theme } from "./services/theme.js";
@@ -100,9 +102,16 @@ export const App = {
     return items;
   },
 
+  // Durée plancher réduite pour CE chargement précis (démarrage de
+  // l'app) : contrairement aux transitions en jeu (menu ↔ partie, où
+  // les 2s pleines évitent tout flash de l'ancien écran), un premier
+  // lancement n'a aucun "reveal" à mettre en scène — le joueur attend
+  // juste d'arriver dans l'app. 900ms garde un minimum de tenue
+  // visuelle (pas de flash si tout est déjà en cache) sans ajouter
+  // d'attente inutile au démarrage.
   async bootLoad() {
     await LoadingScreen.run(this.bootAssetList(), {
-      minDuration: 2000,
+      minDuration: 900,
       timeout: 8000,
       onBeforeReveal: () => this.showMenu()
     });
