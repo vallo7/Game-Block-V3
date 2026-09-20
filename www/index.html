@@ -221,7 +221,25 @@ rel="stylesheet"
 <div class="board-frame">
 <div class="score-wrap">
 <div id="feedbackZone" class="feedback-zone">
-<div id="comboBadge" class="combo-badge hidden">COMBO x2</div>
+<!-- Combo badge, étendu par les Phases 12/13 : la ligne du haut porte le
+     libellé + la jauge Perfect Run (4 pips, 3/5/10/20 — purement dérivée
+     de Game.combo, cf. core/game-rules.js#updatePerfectRun) ; la bande du
+     bas est le combo meter, calé sur la même fenêtre que Game.comboUntil
+     (#startComboMeter). Les deux n'existent que pendant que le badge
+     combo lui-même est visible : aucun risque de chevaucher le badge
+     praise, qui vit plus haut dans cette même zone. -->
+<div id="comboBadge" class="combo-badge hidden">
+<span class="combo-badge-row">
+<span class="combo-badge-label">COMBO x2</span>
+<span id="perfectRunGauge" class="perfect-run-gauge">
+<span class="prg-pip" data-milestone="3"></span>
+<span class="prg-pip" data-milestone="5"></span>
+<span class="prg-pip" data-milestone="10"></span>
+<span class="prg-pip" data-milestone="20"></span>
+</span>
+</span>
+<span class="combo-meter-track"><span id="comboMeterFill" class="combo-meter-fill"></span></span>
+</div>
 </div>
 <div id="currentScore" class="current-score">0</div>
 </div>
@@ -331,7 +349,10 @@ rel="stylesheet"
 </div>
 </div>
 </div>
-<!-- GAME OVER -->
+<!-- GAME OVER / SECOND CHANCE (roadmap Phase 8) : 3 cartes de boost au
+     lieu du choix binaire Continue/Restart. Le countdown garde son rôle
+     de filet de sécurité (action par défaut = NEW GAME, cf.
+     core/game-flow.js#startGameOver). -->
 <div id="gameOverOverlay" class="overlay hidden" aria-hidden="true">
 <div class="gameover-panel">
 <div class="defeat-msg">NO MORE MOVES!</div>
@@ -340,27 +361,46 @@ rel="stylesheet"
 <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
 <circle id="ringFg" class="ring-fg" cx="50" cy="50" r="42"></circle>
 </svg>
-<div id="countdownValue" class="countdown-value">10</div>
+<div id="countdownValue" class="countdown-value">12</div>
 </div>
-<div class="continue-msg">Watch an ad to continue!</div>
-<div class="gameover-actions">
-<button id="adsBtn" class="ads-btn">
-<span class="ads-icon">
+<div class="second-chance-title">CHOOSE YOUR COMEBACK</div>
+<div class="boost-list">
+<button id="secondWindBtn" class="boost-card boost-primary">
+<span class="boost-shine" aria-hidden="true"></span>
+<span class="boost-icon">
 <svg viewBox="0 0 24 24" class="svg-icon">
-<rect x="3" y="5" width="18" height="14" rx="3"></rect>
-<path d="M10 9.5v5l4.5-2.5L10 9.5Z"></path>
+<path d="M12 21C12 21 4 15.5 4 9.5C4 6.5 6.5 4 9.5 4C11 4 12 5 12 5C12 5 13 4 14.5 4C17.5 4 20 6.5 20 9.5C20 15.5 12 21 12 21Z"></path>
 </svg>
 </span>
-<strong>CONTINUE!</strong>
+<span class="boost-copy">
+<strong class="boost-name">SECOND WIND</strong>
+<span class="boost-desc">Clear the trouble blocks, keep your score</span>
+</span>
+<span class="boost-tag"><svg viewBox="0 0 24 24" class="boost-tag-icon"><path d="M8 5v14l11-7Z"></path></svg>AD</span>
 </button>
-<button id="restartBtn" class="restart-btn">
-<span class="restart-icon">
+<button id="freshBoardBtn" class="boost-card boost-secondary">
+<span class="boost-icon">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2 2M15.7 15.7l2 2M17.7 6.3l-2 2M8.3 15.7l-2 2"></path>
+</svg>
+</span>
+<span class="boost-copy">
+<strong class="boost-name">FRESH START</strong>
+<span class="boost-desc">Wipe the board clean, keep your score</span>
+</span>
+<span class="boost-tag"><svg viewBox="0 0 24 24" class="boost-tag-icon"><path d="M8 5v14l11-7Z"></path></svg>AD</span>
+</button>
+<button id="newGameBtn" class="boost-card boost-tertiary">
+<span class="boost-icon">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <path d="M20 12a8 8 0 1 1-2.34-5.66"></path>
 <path d="M20 4v5h-5"></path>
 </svg>
 </span>
-<strong>RESTART</strong>
+<span class="boost-copy">
+<strong class="boost-name">NEW GAME</strong>
+<span class="boost-desc">Start a brand new run</span>
+</span>
 </button>
 </div>
 </div>
