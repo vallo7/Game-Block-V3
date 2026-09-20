@@ -158,6 +158,17 @@ export const Game = {
     this.comboBadgeEl = document.getElementById("comboBadge");
     this.praiseBadgeEl = document.getElementById("praiseBadge");
 
+    // Round performance : ces éléments étaient jusqu'ici re-cherchés via
+    // getElementById/querySelectorAll à CHAQUE coup validé (validate()
+    // tourne sur chaque tracé posé, pas seulement sur les gros coups) —
+    // un coût qui se répète des centaines de fois sur une longue partie
+    // pour rien, puisque ces nœuds sont statiques dans le markup et ne
+    // sont jamais recréés. Mis en cache ici comme le reste ci-dessus.
+    this.comboBadgeLabelEl = this.comboBadgeEl ? this.comboBadgeEl.querySelector(".combo-badge-label") : null;
+    this.comboMeterFillEl = document.getElementById("comboMeterFill");
+    this.perfectRunGaugeEl = document.getElementById("perfectRunGauge");
+    this.perfectRunPips = this.perfectRunGaugeEl ? this.perfectRunGaugeEl.querySelectorAll(".prg-pip") : [];
+
     this.bindEvents();
     this.resize();
 
@@ -195,7 +206,12 @@ export const Game = {
           this.update(realDelta);
           this.draw();
         } catch (error) {
-          // garde-fou : le loop ne meurt jamais
+          // garde-fou : le loop ne meurt jamais — l'erreur est
+          // maintenant tracée (round diagnostic performance) plutôt
+          // qu'avalée en silence, pour qu'un problème intermittent
+          // laisse une trace exploitable au lieu de disparaître sans
+          // explication.
+          console.error("Game loop error:", error);
         }
       }
 
