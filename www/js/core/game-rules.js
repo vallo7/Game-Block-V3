@@ -324,15 +324,15 @@ Object.assign(Game, {
       this.startComboMeter();
 
       if (this.combo >= 2) {
-        const badge = document.getElementById("comboBadge");
+        const badge = this.comboBadgeEl;
 
         if (badge) {
           // Phase 13 : le badge héberge désormais aussi la barre du combo
           // meter (.combo-meter-track) — on met à jour le libellé via son
           // propre span plutôt que badge.textContent, qui effacerait cette
-          // barre à chaque coup.
-          const label = badge.querySelector(".combo-badge-label");
-          if (label) label.textContent = `COMBO x${this.combo}`;
+          // barre à chaque coup. Référence mise en cache (round
+          // performance) au lieu d'un querySelector à chaque coup.
+          if (this.comboBadgeLabelEl) this.comboBadgeLabelEl.textContent = `COMBO x${this.combo}`;
 
           badge.classList.remove("hidden");
           badge.classList.remove("pop", "mega");
@@ -427,7 +427,7 @@ Object.assign(Game, {
   showPraise(level, emptied) {
     const entry = PRAISE.LEVELS.find(l => l.level === level) || PRAISE.LEVELS[0];
 
-    const badge = document.getElementById("praiseBadge");
+    const badge = this.praiseBadgeEl;
     if (!badge) return;
 
     badge.textContent = entry.word;
@@ -548,11 +548,11 @@ Object.assign(Game, {
   // suit donc automatiquement celle du badge (comboUntil), rien à gérer
   // en plus ici — seul l'état "reached"/"pop" de chaque pip est à jour.
   updatePerfectRun(previousCombo) {
-    const gauge = document.getElementById("perfectRunGauge");
+    const gauge = this.perfectRunGaugeEl;
     if (!gauge) return;
 
     const milestones = PERFECT_RUN.MILESTONES;
-    const pips = gauge.querySelectorAll(".prg-pip");
+    const pips = this.perfectRunPips;
     let crossed = null;
 
     milestones.forEach((milestone, index) => {
@@ -580,10 +580,10 @@ Object.assign(Game, {
   // seulement qu'un pip "reached"/"pop" d'une run précédente ne reste
   // affiché la toute première fois que le badge combo réapparaît.
   resetPerfectRunGauge() {
-    const gauge = document.getElementById("perfectRunGauge");
+    const gauge = this.perfectRunGaugeEl;
     if (!gauge) return;
 
-    gauge.querySelectorAll(".prg-pip").forEach(pip => {
+    this.perfectRunPips.forEach(pip => {
       pip.classList.remove("reached", "pop");
     });
     gauge.classList.remove("levelup");
@@ -599,7 +599,7 @@ Object.assign(Game, {
       this.spawnParticles(bx, by, 3, "#ffd76a");
     }
 
-    const gauge = document.getElementById("perfectRunGauge");
+    const gauge = this.perfectRunGaugeEl;
     if (gauge) {
       gauge.classList.remove("levelup");
       void gauge.offsetWidth;
@@ -616,7 +616,7 @@ Object.assign(Game, {
   startComboMeter() {
     this.stopComboMeter();
 
-    const fill = document.getElementById("comboMeterFill");
+    const fill = this.comboMeterFillEl;
     if (!fill) return;
 
     const duration = COMBO.WINDOW_MS;
@@ -652,7 +652,7 @@ Object.assign(Game, {
       this.comboMeterFrame = null;
     }
 
-    const fill = document.getElementById("comboMeterFill");
+    const fill = this.comboMeterFillEl;
     if (fill) fill.style.transform = "scaleX(1)";
   },
 
