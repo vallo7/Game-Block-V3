@@ -644,6 +644,20 @@ Object.assign(Game, {
     // Compaction en place (même résultat que l'ancien .filter(), sans
     // réallouer un tableau à chaque frame) : on ne garde que les entrées
     // encore actives, dans le même ordre qu'avant.
+    //
+    // Correctif (round performance) : une entrée dont le départ décalé
+    // (start = gameNow + stagger, voir processClears()) n'est pas
+    // encore atteint reste maintenant en file au lieu d'être jetée.
+    // L'ancienne condition traitait "pas encore démarré" et "déjà
+    // terminé" de la même façon (skip = disparition définitive du
+    // tableau compacté dès cette frame), ce qui supprimait pour de bon
+    // les cases décalées d'un clear multi-lignes/multi-cases avant
+    // même qu'elles aient eu la chance de démarrer, dès que le rendu de
+    // la frame suivante arrivait avant leur propre décalage — un clear
+    // de grande ampleur (le moment le plus spectaculaire du jeu)
+    // perdait donc une bonne partie de son animation "bulle qui
+    // éclate", ce qui se lisait comme une saccade/un raté plutôt qu'un
+    // vrai ralentissement CPU.
     let destroyWrite = 0;
 
     const pad = cellSize * this.CELL_PAD_RATIO;
@@ -655,8 +669,9 @@ Object.assign(Game, {
       const power = Math.min(5, a.power || 1);
       const duration = 380 + power * 14;
 
-      if (!(now >= a.start && now - a.start < duration)) continue;
+      if (now - a.start >= duration) continue;
       this.destroyAnims[destroyWrite++] = a;
+      if (now < a.start) continue;
 
       const t = (now - a.start) / duration;
       const boost = 1 + power * 0.09;
@@ -749,8 +764,12 @@ Object.assign(Game, {
 
     for (let readIndex = 0; readIndex < this.cellFlashes.length; readIndex++) {
       const flash = this.cellFlashes[readIndex];
-      if (!(now >= flash.start && now - flash.start < 380)) continue;
+      // Même correctif que drawDestroyAnims() ci-dessus : une entrée pas
+      // encore démarrée (départ décalé) reste en file au lieu d'être
+      // supprimée avant d'avoir pu jouer.
+      if (now - flash.start >= 380) continue;
       this.cellFlashes[cellFlashWrite++] = flash;
+      if (now < flash.start) continue;
       const t = (now - flash.start) / 380;
       const power = Math.min(5, flash.power || 1);
       const alpha = Math.sin(Math.PI * t) * (0.85 + power * 0.06);
@@ -1145,34 +1164,21 @@ Object.assign(Game, {
     this.debris.length = writeIndex;
   },
 
-  spawnParticles(cellX, cellY, amount, forcedColor) {
-    const cellSize = this.getCellSize();
-    const cx = this.getCellCenterX(cellX);
-    const cy = this.getCellCenterY(cellY);
-
-    for (let i = 0; i < amount; i++) {
-      if (this.particles.length >= this.MAX_PARTICLES) break;
-
-      const angle = Math.random() * Math.PI * 2;
-      const speed = cellSize * (0.05 + Math.random() * 0.14);
-      const big = Math.random() > 0.72;
-
-      this.particles.push({
-        x: cx,
-        y: cy,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - cellSize * 0.03,
-        size: cellSize * (big ? 0.07 + Math.random() * 0.04 : 0.03 + Math.random() * 0.04),
-        rotation: Math.random() * Math.PI * 2,
-        vr: (Math.random() - 0.5) * 0.12,
-        shape: Math.random() > 0.6 ? "diamond" : "circle",
-        glow: big,
-        life: 1,
-        decay: 0.018 + Math.random() * 0.02,
-        color: forcedColor || (Math.random() > 0.45 ? "#ffffff" : VisualTheme.getVfxAccent(Theme.current.light))
-      });
-    }
-  },
+  // Confettis/particules retirés de la grille pendant le jeu (demande
+  // explicite) : spawnParticles() devient un no-op plutôt que de
+  // toucher chacun de ses appelants (showPraise, celebrateEmptyGrid,
+  // revive, freshBoard, startNewGameSequence, placeObstacleCell) — un
+  // seul point de coupure, aucun risque d'en oublier un si un futur
+  // appel est ajouté ailleurs. Effet de bord positif côté performance
+  // (round diagnostic) : ce système pouvait tourner jusqu'à
+  // MAX_PARTICLES (180) éléments par frame, plusieurs en mode "glow"
+  // (un drawImage additionnel chacun), précisément pendant les moments
+  // les plus chargés d'une partie longue (rafales d'obstacles, gros
+  // praise) — ce coût disparaît avec lui. this.particles reste déclaré
+  // et drawParticles() continue de tourner (sur un tableau toujours
+  // vide désormais, donc gratuit) : il suffit de restaurer le corps
+  // ci-dessous pour réactiver l'effet un jour.
+  spawnParticles() {},
 
   spawnDebris(cellX, cellY, color, amount) {
     const cellSize = this.getCellSize();
