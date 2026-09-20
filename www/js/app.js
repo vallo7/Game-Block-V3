@@ -38,6 +38,7 @@ import { Haptics } from "./services/haptics.js";
 import { ADS } from "./config/gameConfig.js";
 import { LoadingScreen } from "./ui/loading.js";
 import { GameEntranceFX } from "./ui/game-entrance.js";
+import { MenuEntranceFX } from "./ui/menu-entrance.js";
 import { Environments } from "./services/environment.js";
 
 export const App = {
@@ -115,6 +116,7 @@ export const App = {
       timeout: 8000,
       onBeforeReveal: () => this.showMenu()
     });
+    MenuEntranceFX.play();
   },
 
   async goToGame() {
@@ -147,6 +149,7 @@ export const App = {
         timeout: 5000,
         onBeforeReveal: () => this.showMenu()
       });
+      MenuEntranceFX.play();
     } finally {
       this._transitioning = false;
     }
