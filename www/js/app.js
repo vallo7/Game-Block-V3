@@ -262,29 +262,12 @@ export const App = {
       el.classList.remove("celebrate");
     }, 600);
   },
-  confetti(originEl) {
-    const rect = originEl.getBoundingClientRect();
-    const ox = rect.left + rect.width / 2;
-    const oy = rect.top + rect.height / 2;
-    const colors = Theme.bank.map(c => c.bg);
-    for (let i = 0; i < 26; i++) {
-      const piece = document.createElement("div");
-      piece.className = "confetti-piece";
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 60 + Math.random() * 140;
-      piece.style.left = ox + "px";
-      piece.style.top = oy + "px";
-      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-      piece.style.setProperty("--tx", Math.cos(angle) * dist + "px");
-      piece.style.setProperty("--ty", Math.sin(angle) * dist * 0.6 + 160 + Math.random() * 120 + "px");
-      piece.style.setProperty("--rot", Math.floor(Math.random() * 720) + "deg");
-      piece.style.animationDuration = 800 + Math.random() * 500 + "ms";
-      document.body.appendChild(piece);
-      setTimeout(() => {
-        piece.remove();
-      }, 1600);
-    }
-  },
+  // Confettis retirés de l'écran de jeu (demande explicite, même
+  // logique que Game.spawnParticles côté canvas — voir
+  // core/game-render.js) : no-op plutôt que de toucher à l'appel dans
+  // bindUI() (tap sur le meilleur score), qui continue d'appeler
+  // this.confetti(bestScore) sans effet.
+  confetti() {},
   bindUI() {
     const settingsBtn = document.getElementById("settingsBtn");
     const settingsOverlay = document.getElementById("settingsOverlay");
