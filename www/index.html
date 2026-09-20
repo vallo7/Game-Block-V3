@@ -64,14 +64,39 @@ rel="stylesheet"
 <span class="ads-shine" aria-hidden="true"></span>
 </button>
 </div>
+<!-- Classic/Adventure : même langage visuel que les cartes de boost du
+     panneau Second Chance (icône + nom, anneau marine, dégradé), en rose
+     (Classic) / bleu (Adventure) échantillonnés sur le logo — voir
+     --brand-pink/--brand-blue (css/base.css). Les deux PNG précédents
+     (img/ui/classic-button.png, adventure-button.png) ne sont plus
+     utilisés. Adventure reste verrouillé (écran pas encore prêt) : même
+     traitement disabled qu'avant, juste reskinné. -->
 <div class="mode-list">
-<button id="classicModeBtn" class="mode-card-img">
-<img src="img/ui/classic-button.png" alt="Classic" draggable="false" />
+<button id="classicModeBtn" class="mode-card mode-primary">
+<span class="mode-shine" aria-hidden="true"></span>
+<span class="mode-icon">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<rect x="5" y="5" width="14" height="14" rx="4"></rect>
+<path d="M9.5 9.5h5v5h-5z"></path>
+</svg>
+</span>
+<strong class="mode-name">CLASSIC</strong>
 </button>
-<button class="mode-card-img locked" disabled aria-label="Adventure — coming soon">
-<img src="img/ui/adventure-button.png" alt="Adventure" draggable="false" />
+<button id="adventureModeBtn" class="mode-card mode-secondary locked" disabled aria-label="Adventure — coming soon">
+<span class="mode-icon">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<circle cx="12" cy="12" r="9"></circle>
+<path d="M15.5 8.5 13 13l-4.5 2.5L11 11Z"></path>
+</svg>
+</span>
+<strong class="mode-name">ADVENTURE</strong>
 </button>
 </div>
+<!-- Bannière basse (round de suivi) : simple contour sur son bord
+     supérieur, posée tout en bas de l'écran d'accueil ; les boutons
+     réglages/thèmes restent dans le flux normal juste au-dessus et se
+     retrouvent donc visuellement posés dessus. -->
+<div class="menu-bottom-bar" aria-hidden="true"></div>
 <div class="bottom-actions-row">
 <button id="homeSettingsBtn" class="quick-btn home-settings-btn" aria-label="Settings">
 <svg viewBox="0 0 24 24" class="svg-icon">
@@ -263,6 +288,11 @@ rel="stylesheet"
 </section>
 <!-- THEME PAGE -->
 <section id="themeScreen" class="screen theme-screen">
+<!-- Fond plein écran (round de suivi) : calque unique derrière tout
+     l'écran, mis à jour au fil du swipe par
+     services/visualtheme.js#updateScreenBg — remplace l'ancien fond par
+     slide qui ne couvrait que la hauteur du carrousel, pas tout l'écran. -->
+<div id="themeScreenBg" class="theme-screen-bg" aria-hidden="true"></div>
 <div class="theme-page-header">
 <button id="themeBackBtn" class="mini-btn btn-back" aria-label="Back">
 <svg viewBox="0 0 24 24" class="svg-icon">
@@ -337,14 +367,20 @@ rel="stylesheet"
 </div>
 </div>
 <div class="settings-restart">
-<button id="settingsRestartBtn" class="restart-game-btn">
-<span class="restart-icon">
+<!-- Réutilise exactement le balisage/style de la carte NEW GAME du
+     panneau Second Chance (css/overlays.css, .boost-card.boost-tertiary)
+     plutôt qu'un bouton "RESTART" dédié. -->
+<button id="settingsRestartBtn" class="boost-card boost-tertiary">
+<span class="boost-icon">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <path d="M20 12a8 8 0 1 1-2.34-5.66"></path>
 <path d="M20 4v5h-5"></path>
 </svg>
 </span>
-<strong>RESTART</strong>
+<span class="boost-copy">
+<strong class="boost-name">NEW GAME</strong>
+<span class="boost-desc">Start a brand new run</span>
+</span>
 </button>
 </div>
 </div>
