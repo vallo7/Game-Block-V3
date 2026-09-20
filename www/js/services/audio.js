@@ -391,6 +391,24 @@ export const GameAudio = {
 
       oscillator.start(now);
       oscillator.stop(now + duration + 0.03);
+
+      // Round diagnostic performance : libère explicitement ce chemin
+      // du graphe audio dès que la note est terminée, au lieu de
+      // compter uniquement sur le ramassage automatique du navigateur.
+      // playTone() est appelée en très grand nombre sur une partie
+      // longue et rythmée (chaque case posée, chaque clear, chaque
+      // combo, chaque palier de praise...), et l'AudioContext est un
+      // singleton qui vit toute la session de l'app — jamais recréé
+      // entre deux parties. filter/gainNode sont partagés par les deux
+      // voix ci-dessus ; disconnect() ne fait rien s'il est déjà
+      // appelé, donc les deux "ended" peuvent librement s'en charger
+      // chacun sans risque de double-erreur.
+      oscillator.addEventListener("ended", () => {
+        oscillator.disconnect();
+        voiceGain.disconnect();
+        filter.disconnect();
+        gainNode.disconnect();
+      }, { once: true });
     });
   },
 
@@ -667,3 +685,4 @@ export const GameAudio = {
     this.playTone(base * 2, { duration: 0.3, type: "sine", gain: 0.32, delay: 0.34 });
   }
 };
+
