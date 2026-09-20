@@ -109,8 +109,14 @@
   inset: 0;
   z-index: 0;
 }
+/* Assombrissement retiré pour les thèmes déverrouillés (retour
+   utilisateur : "rectangle noir opaque devant le fond") — ce dégradé
+   marine assombrissait toute la zone du carrousel nettement plus que
+   le fond visible au-dessus du header/sous les dots, ce qui créait un
+   rectangle visible. Le thème verrouillé (juste en dessous) garde le
+   sien, utile pour signaler clairement son état indisponible. */
 .theme-slide:not(.is-locked) .theme-slide-scrim {
-  background: linear-gradient(180deg, rgba(6, 8, 24, 0.18), rgba(5, 6, 18, 0.62) 82%);
+  background: none;
 }
 .theme-slide.is-locked .theme-slide-scrim {
   background: rgba(5, 8, 30, 0.6);
