@@ -308,11 +308,13 @@ export const VisualTheme = {
     slide.dataset.themeId = theme.id;
     if (theme.locked) slide.classList.add("is-locked");
 
-    const bg = document.createElement("div");
-    bg.className = "theme-slide-bg";
-    bg.style.backgroundImage = `url("${theme.bg}")`;
-    slide.appendChild(bg);
-
+    // Le fond photo n'est plus dessiné ici (round de suivi) : il vit
+    // désormais dans #themeScreenBg, un calque plein écran unique
+    // derrière tout #themeScreen (voir updateScreenBg ci-dessous) — sur
+    // l'ancien découpage, chaque slide ne portait son image que sur la
+    // hauteur de .theme-carousel-wrap (amputée du header et des dots),
+    // ce qui laissait le dégradé de secours de .theme-screen visible
+    // tout autour au lieu de couvrir tout l'écran.
     if (!theme.locked) {
       slide.appendChild(this.buildDecorFragment(theme.id));
     }
@@ -403,6 +405,11 @@ export const VisualTheme = {
       this.carouselBound = true;
     }
 
+    // Force la prochaine updateCarouselState() à (ré)écrire le fond
+    // plein écran, même si l'index détecté est identique à celui d'un
+    // rendu précédent (ex. réouverture de la page sur le même thème).
+    this._lastBgIndex = -1;
+
     this.updateCarouselState();
   },
 
@@ -417,6 +424,29 @@ export const VisualTheme = {
 
     dots.forEach((dot, i) => dot.classList.toggle("is-active", i === index));
     slides.forEach((slide, i) => slide.classList.toggle("is-current", i === index));
+
+    // Fond plein écran (round de suivi) : ne réécrit le style que si
+    // l'index affiché a réellement changé, pour ne pas répéter la même
+    // écriture DOM à chaque event "scroll" (plusieurs par frame pendant
+    // un swipe).
+    if (index !== this._lastBgIndex) {
+      this._lastBgIndex = index;
+      this.updateScreenBg(this.LIST[index]);
+    }
+  },
+
+  // Fond plein écran de la page Themes (round de suivi) : un calque
+  // unique derrière tout #themeScreen (voir index.html, #themeScreenBg),
+  // mis à jour au fil du swipe par updateCarouselState() ci-dessus —
+  // remplace l'ancien fond par-slide qui ne couvrait que la hauteur du
+  // carrousel. Le flou/assombrissement d'un thème verrouillé (déjà
+  // existant sur l'ancien .theme-slide-bg) vit maintenant ici.
+  updateScreenBg(theme) {
+    const bgEl = document.getElementById("themeScreenBg");
+    if (!bgEl || !theme) return;
+
+    bgEl.style.backgroundImage = `url("${theme.bg}")`;
+    bgEl.classList.toggle("is-locked", Boolean(theme.locked));
   },
 
   bindUI() {
