@@ -81,12 +81,18 @@
   right: 0;
   bottom: calc(-22px - env(safe-area-inset-bottom));
   z-index: 1;
-  height: calc(92px + env(safe-area-inset-bottom));
+  /* Hauteur augmentée (92px -> 116px, +24px) pour remonter le bord
+     supérieur de la bande sans toucher à .bottom-actions-row (position
+     des boutons réglages/thème inchangée) : les boutons se retrouvent
+     ainsi centrés dans la hauteur visible de la bande au lieu d'être
+     collés contre son bord haut. */
+  height: calc(116px + env(safe-area-inset-bottom));
   border-top: 4px solid #0a0c4d;
   border-radius: 30px 30px 0 0;
-  background: linear-gradient(180deg, rgba(10, 12, 77, 0.32), rgba(10, 12, 77, 0.74));
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Bande blanche opaque (demande explicite) — remplace le dégradé
+     marine translucide + flou d'arrière-plan, devenus inutiles derrière
+     un fond désormais opaque. */
+  background: #ffffff;
   pointer-events: none;
 }
 /* ---------- ADS BUTTON (menu) ---------- */
@@ -207,6 +213,16 @@
   place-items: center;
   background: rgba(255, 255, 255, 0.3);
 }
+/* Icône "play" (Classic + Adventure, remplace les anciens pictos,
+   index.html) : rendue pleine plutôt qu'en contour — comme
+   .boost-tag-icon (overlays.css) — pour rester lisible à cette taille.
+   .svg-icon garde son dimensionnement 100%/100% ; seul le remplissage
+   est surchargé ici (spécificité supérieure à la règle .svg-icon de
+   base.css, qui met fill:none par défaut). */
+.mode-icon .svg-icon {
+  fill: currentColor;
+  stroke: none;
+}
 .mode-name {
   font-size: 21px;
   font-weight: 900;
@@ -222,15 +238,13 @@
 }
 .mode-primary:active { animation: none; }
 .mode-primary .mode-icon { background: rgba(255, 255, 255, 0.4); color: #7a0048; }
+/* Flash lumineux du bouton Classic retiré (demande explicite) : la
+   pulsation douce (.mode-primary, animation modePulse) reste la seule
+   animation du bouton. Règle gardée à display:none plutôt que
+   supprimée, pour laisser le span .mode-shine du markup (index.html)
+   inoffensif sans avoir à y toucher. */
 .mode-shine {
-  position: absolute;
-  top: 0;
-  left: -60%;
-  width: 30%;
-  height: 100%;
-  background: linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0) 100%);
-  animation: shine 3s ease-in-out infinite;
-  pointer-events: none;
+  display: none;
 }
 @keyframes modePulse {
   0%, 100% { transform: scale(1); }
