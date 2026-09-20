@@ -42,17 +42,35 @@ export const OBSTACLES = {
 };
 
 // ---------- Séquence de défaite / countdown de fin de partie ----------
+// COUNTDOWN_SECONDS est passé de 10 à 12 (Phase 8, "Second Chance") pour
+// laisser un temps de lecture confortable aux 3 options de boost au lieu
+// du choix binaire précédent (Continuer / Restart). RING_DURATION_MS reste
+// verrouillé à COUNTDOWN_SECONDS*1000 (le cercle doit se vider exactement
+// au rythme du chiffre affiché).
 export const GAME_OVER = {
   FREEZE_DELAY_MS: 2000,        // délai avant le gel des blocs après checkGameOver
   POPUP_DELAY_MS: 3400,         // délai entre le gel et l'apparition du panneau
   FREEZE_FX_DURATION_MS: 3000,  // durée de l'effet visuel de gel
-  COUNTDOWN_SECONDS: 10,
+  COUNTDOWN_SECONDS: 12,
   COUNTDOWN_INTERVAL_MS: 1000,
   RING_CIRCUMFERENCE: 264,
-  RING_DURATION_MS: 10000
+  RING_DURATION_MS: 12000
 };
 
 // ---------- Publicités (AdMob) ----------
+// Phase 7 (révision du système publicitaire) : les probabilités
+// d'affichage d'un interstitiel sont revues à la baisse par défaut (les
+// anciennes valeurs sont gardées en commentaire pour référence), et un
+// cooldown minimal global (MIN_INTERSTITIAL_INTERVAL_MS) est introduit
+// pour qu'on ne puisse jamais enchaîner deux interstitiels rapprochés,
+// même si plusieurs points d'entrée se déclenchent coup sur coup (ex.
+// countdown de défaite qui expire juste après un restart). Appliqué à
+// Classic comme à tout futur mode : ce n'est pas une case par mode, c'est
+// le service Ads lui-même qui impose le cooldown (services/ads.js).
+// Les publicités RÉCOMPENSÉES (rewarded, Second Chance §Phase 8) ne sont
+// PAS soumises à ce cooldown : elles sont toujours déclenchées par un
+// choix explicite du joueur pour un bénéfice clair, jamais une
+// interruption — seuls les interstitiels (non sollicités) sont limités.
 export const ADS = {
   // IDs de démonstration officiels Google, à remplacer avant publication
   // (cf. roadmap §6, Phase 6 "Chantiers de publication").
@@ -61,12 +79,48 @@ export const ADS = {
     interstitial: "ca-app-pub-3940256099942544/1033173712",
     rewarded: "ca-app-pub-3940256099942544/5224354917"
   },
-  // Probabilités d'affichage d'un interstitiel selon le point d'entrée.
-  // Valeurs identiques à l'existant : la Phase 7 (révision pub, hors
-  // Phase 1) ajustera ces chiffres depuis cet unique endroit.
-  CLASSIC_ENTRY_CHANCE: 2 / 3,   // entrée en partie depuis le menu (Classic)
-  RESTART_CHANCE: 3 / 4,         // bouton Restart (pause ou popup défaite)
-  GAMEOVER_TIMEOUT_CHANCE: 1 / 2 // countdown de défaite arrivé à 0
+  CLASSIC_ENTRY_CHANCE: 1 / 4,    // était 2/3 — entrée en partie depuis le menu
+  RESTART_CHANCE: 1 / 4,          // était 3/4 — bouton Restart (pause ou popup défaite)
+  GAMEOVER_TIMEOUT_CHANCE: 1 / 5, // était 1/2 — countdown de défaite arrivé à 0
+  // Durée plancher entre deux interstitiels, tous points d'entrée
+  // confondus (ne s'applique jamais aux pubs récompensées).
+  MIN_INTERSTITIAL_INTERVAL_MS: 90000
+};
+
+// ---------- Praise (Phase 11 — extension 5 → 8 paliers) ----------
+// Barème centralisé : chaque palier est vérifié du plus haut au plus bas
+// (le premier seuil atteint par `power` = count + combo l'emporte) ; NICE!
+// reste le palier plancher, atteint dès que showPraise() est appelée sans
+// franchir le seuil de GREAT!. Un Perfect Clear (grille totalement vidée)
+// garantit désormais un palier minimum (EMPTIED_MIN_LEVEL) au lieu de
+// forcer un palier fixe comme avant l'extension — un perfect clear obtenu
+// pendant un très gros combo peut donc dépasser ce plancher.
+export const PRAISE = {
+  LEVELS: [
+    { level: 1, word: "NICE!", threshold: 0 },
+    { level: 2, word: "GREAT!", threshold: 5 },
+    { level: 3, word: "AWESOME!", threshold: 7 },
+    { level: 4, word: "AMAZING!", threshold: 9 },
+    { level: 5, word: "UNREAL!", threshold: 12 },
+    { level: 6, word: "INCREDIBLE!", threshold: 15 },
+    { level: 7, word: "GODLIKE!", threshold: 18 },
+    { level: 8, word: "LEGENDARY!", threshold: 22 }
+  ],
+  EMPTIED_MIN_LEVEL: 6
+};
+
+// ---------- Combo (fenêtre de validité partagée par le badge, le
+// nouveau combo meter et le Perfect Run) ----------
+export const COMBO = {
+  WINDOW_MS: 1800
+};
+
+// ---------- Perfect Run (Phase 12) ----------
+// Jauge de clears consécutifs basée sur `combo` (aucune nouvelle
+// mécanique de score : purement un habillage qui célèbre les mêmes
+// paliers que ceux déjà atteignables via combo).
+export const PERFECT_RUN = {
+  MILESTONES: [3, 5, 10, 20]
 };
 
 // ---------- Rate us ----------
