@@ -58,19 +58,21 @@ export const GAME_OVER = {
 };
 
 // ---------- Publicités (AdMob) ----------
-// Phase 7 (révision du système publicitaire) : les probabilités
-// d'affichage d'un interstitiel sont revues à la baisse par défaut (les
-// anciennes valeurs sont gardées en commentaire pour référence), et un
-// cooldown minimal global (MIN_INTERSTITIAL_INTERVAL_MS) est introduit
-// pour qu'on ne puisse jamais enchaîner deux interstitiels rapprochés,
-// même si plusieurs points d'entrée se déclenchent coup sur coup (ex.
-// countdown de défaite qui expire juste après un restart). Appliqué à
-// Classic comme à tout futur mode : ce n'est pas une case par mode, c'est
-// le service Ads lui-même qui impose le cooldown (services/ads.js).
-// Les publicités RÉCOMPENSÉES (rewarded, Second Chance §Phase 8) ne sont
-// PAS soumises à ce cooldown : elles sont toujours déclenchées par un
-// choix explicite du joueur pour un bénéfice clair, jamais une
-// interruption — seuls les interstitiels (non sollicités) sont limités.
+// Phase 7 (révision du système publicitaire) : cooldown minimal global
+// (MIN_INTERSTITIAL_INTERVAL_MS) pour qu'on ne puisse jamais enchaîner
+// deux interstitiels rapprochés, même si plusieurs points d'entrée se
+// déclenchent coup sur coup. Appliqué à Classic comme à tout futur mode :
+// ce n'est pas une case par mode, c'est le service Ads lui-même qui
+// impose le cooldown (services/ads.js).
+// Fréquences doublées sur demande explicite (round de suivi) par rapport
+// au premier passage de la Phase 7 (anciennes valeurs 1/4, 1/4, 1/5 —
+// elles-mêmes une réduction des valeurs d'origine 2/3, 3/4, 1/2).
+// NEW GAME (panneau Second Chance) a son propre déclenchement quasi
+// systématique (NEW_GAME_CHANCE), distinct du Restart occasionnel de la
+// pause — c'est le point de rupture le plus naturel pour un interstitiel.
+// Les publicités RÉCOMPENSÉES (rewarded, Second Chance) ne sont PAS
+// soumises au cooldown : toujours déclenchées par un choix explicite du
+// joueur pour un bénéfice clair, jamais une interruption.
 export const ADS = {
   // IDs de démonstration officiels Google, à remplacer avant publication
   // (cf. roadmap §6, Phase 6 "Chantiers de publication").
@@ -79,9 +81,10 @@ export const ADS = {
     interstitial: "ca-app-pub-3940256099942544/1033173712",
     rewarded: "ca-app-pub-3940256099942544/5224354917"
   },
-  CLASSIC_ENTRY_CHANCE: 1 / 4,    // était 2/3 — entrée en partie depuis le menu
-  RESTART_CHANCE: 1 / 4,          // était 3/4 — bouton Restart (pause ou popup défaite)
-  GAMEOVER_TIMEOUT_CHANCE: 1 / 5, // était 1/2 — countdown de défaite arrivé à 0
+  CLASSIC_ENTRY_CHANCE: 1 / 2,    // entrée en partie depuis le menu (doublé, était 1/4)
+  RESTART_CHANCE: 1 / 2,          // bouton Restart de la pause (doublé, était 1/4)
+  GAMEOVER_TIMEOUT_CHANCE: 2 / 5, // countdown de défaite arrivé à 0 (doublé, était 1/5)
+  NEW_GAME_CHANCE: 1,             // bouton NEW GAME du panneau Second Chance : quasi systématique
   // Durée plancher entre deux interstitiels, tous points d'entrée
   // confondus (ne s'applique jamais aux pubs récompensées).
   MIN_INTERSTITIAL_INTERVAL_MS: 90000
@@ -102,11 +105,18 @@ export const PRAISE = {
     { level: 3, word: "AWESOME!", threshold: 7 },
     { level: 4, word: "AMAZING!", threshold: 9 },
     { level: 5, word: "UNREAL!", threshold: 12 },
-    { level: 6, word: "INCREDIBLE!", threshold: 15 },
-    { level: 7, word: "GODLIKE!", threshold: 18 },
+    { level: 6, word: "INSANE!", threshold: 15 },
+    { level: 7, word: "DIVINE!", threshold: 18 },
     { level: 8, word: "LEGENDARY!", threshold: 22 }
   ],
-  EMPTIED_MIN_LEVEL: 6
+  EMPTIED_MIN_LEVEL: 6,
+  // Tailles "idéales" par palier (game-rules.js#fitPraiseText les réduit
+  // si besoin pour tenir à l'écran quel que soit l'appareil — cf. round
+  // de suivi : les mots longs des paliers hauts débordaient sur mobile
+  // avec une taille fixe). INSANE!/DIVINE! ont volontairement la même
+  // longueur qu'UNREAL! (7 lettres + "!") pour rester dans le même palier
+  // de réduction sur petit écran plutôt que de s'inverser entre eux.
+  FONT_SIZES: { 1: 32, 2: 42, 3: 52, 4: 64, 5: 76, 6: 84, 7: 92, 8: 100 }
 };
 
 // ---------- Combo (fenêtre de validité partagée par le badge, le
@@ -155,3 +165,4 @@ export const SETTINGS_DEFAULTS = {
   vibration: true,
   adsBlocked: false
 };
+
