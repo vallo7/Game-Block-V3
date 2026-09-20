@@ -26,6 +26,13 @@ export const Ads = {
   preloadingInterstitial: false,
   preloadingRewarded: false,
 
+  // Phase 7 (révision pub) : horodatage du dernier interstitiel montré,
+  // tous points d'entrée confondus (entrée en partie, restart, timeout de
+  // défaite...). Ne concerne jamais les pubs récompensées (showRewarded),
+  // toujours déclenchées volontairement par le joueur pour un bénéfice
+  // explicite — seule l'interruption non sollicitée est limitée ici.
+  lastInterstitialAt: 0,
+
   UNIT_IDS: ADS.UNIT_IDS,
 
   hasPlugin() {
@@ -112,8 +119,19 @@ export const Ads = {
     this.preloadingRewarded = false;
   },
 
+  // Phase 7 : vrai tant que le dernier interstitiel affiché est plus
+  // récent que ADS.MIN_INTERSTITIAL_INTERVAL_MS — bloque tout nouvel
+  // interstitiel indépendamment du tirage au sort, pour qu'aucune
+  // séquence d'actions rapprochées (ex. restart juste après un premier
+  // interstitiel) ne puisse jamais en montrer deux coup sur coup.
+  isInterstitialCoolingDown() {
+    if (!this.lastInterstitialAt) return false;
+    return Date.now() - this.lastInterstitialAt < ADS.MIN_INTERSTITIAL_INTERVAL_MS;
+  },
+
   async maybeShowInterstitial(chance) {
     if (this.isBlocked() || !this.isOnline() || !this.hasPlugin() || !this.ready) return;
+    if (this.isInterstitialCoolingDown()) return;
     if (Math.random() > chance) return;
 
     Game.pause();
@@ -131,8 +149,11 @@ export const Ads = {
 
       this.interstitialReady = false;
       await AdMob.showInterstitial();
+      this.lastInterstitialAt = Date.now();
     } catch (error) {
-      // Publicité indisponible : on n'interrompt jamais le joueur pour ça.
+      // Publicité indisponible : on n'interrompt jamais le joueur pour ça
+      // (et on ne pose pas le cooldown puisqu'aucun interstitiel n'a
+      // réellement été montré).
     }
 
     Game.resume();
@@ -207,3 +228,4 @@ export const Ads = {
     this.bannerVisible = false;
   }
 };
+
