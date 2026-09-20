@@ -89,7 +89,16 @@ export const GameAudio = {
     great: "audio/great.mp3",
     awesome: "audio/awesome.mp3",
     amazing: "audio/amazing.mp3",
-    unreal: "audio/unreal.mp3"
+    unreal: "audio/unreal.mp3",
+    // Phase 11 (extension du praise, 5 → 8 paliers) : entrées optionnelles
+    // pour de futures voix dédiées aux 3 nouveaux paliers. Tant que ces
+    // fichiers n'existent pas dans audio/, le fetch échoue silencieusement
+    // (cf. loadSamples ci-dessous) et playPraise() retombe sur les notes
+    // synthétisées — exactement le même mécanisme de surcouche optionnelle
+    // que les SFX par environnement (services/environment.js).
+    incredible: "audio/incredible.mp3",
+    godlike: "audio/godlike.mp3",
+    legendary: "audio/legendary.mp3"
   },
 
   async loadSamples() {
@@ -400,6 +409,16 @@ export const GameAudio = {
     this.playTone(freq, { duration: 0.05, type: "triangle", gain: 0.3 });
   },
 
+  // Phase 14 (juice des chaînes) : timbre distinct pour la 1ʳᵉ case d'un
+  // tracé — la même note que playAdd(0), plus une sous-basse courte en
+  // dessous pour donner un "ancrage" plus grave/plein au début du geste,
+  // qu'on ne retrouve pas sur les cases suivantes (playAdd reste
+  // inchangé pour elles).
+  playAddFirst() {
+    this.playTone(300, { duration: 0.06, type: "triangle", gain: 0.32 });
+    this.playTone(150, { duration: 0.09, type: "sine", gain: 0.22, delay: 0.006 });
+  },
+
   playBack() {
     this.playTone(220, { duration: 0.04, type: "triangle", gain: 0.18, slideTo: 180 });
   },
@@ -499,8 +518,12 @@ export const GameAudio = {
   },
 
   playPraise(level) {
-    const names = ["nice", "great", "awesome", "amazing", "unreal"];
-    const name = names[Math.min(Math.max(level, 1), 5) - 1];
+    // Phase 11 (extension du praise, 5 → 8 paliers) : les 3 nouveaux noms
+    // n'ont pas (encore) d'échantillon dédié — playSample() renvoie false
+    // pour eux et le code retombe naturellement sur les notes synthétisées
+    // ci-dessous, exactement comme pour n'importe quel échantillon manquant.
+    const names = ["nice", "great", "awesome", "amazing", "unreal", "incredible", "godlike", "legendary"];
+    const name = names[Math.min(Math.max(level, 1), 8) - 1];
 
     this.playRiser(level);
 
@@ -529,6 +552,22 @@ export const GameAudio = {
         this.playTone(base * 2, { duration: 0.22, type: "sine", gain: 0.28, delay: 0.3 });
         this.playTone(base * 2.5, { duration: 0.22, type: "sine", gain: 0.22, delay: 0.38 });
       }
+
+      // Paliers 6-8 (Phase 11) : couche supplémentaire d'éclat, de plus en
+      // plus dense, au-dessus du même carillon de base — pas un nouveau
+      // motif, juste plus de "sparkle" pour marquer l'escalade.
+      if (level >= 6) {
+        this.playTone(base * 3, { duration: 0.18, type: "sine", gain: 0.2, delay: 0.46 });
+      }
+
+      if (level >= 7) {
+        this.playTone(base * 3.75, { duration: 0.18, type: "triangle", gain: 0.18, delay: 0.54 });
+      }
+
+      if (level >= 8) {
+        this.playTone(base * 4.5, { duration: 0.26, type: "sine", gain: 0.22, delay: 0.62 });
+        this.playTone(base / 4, { duration: 0.4, type: "sawtooth", gain: 0.16, delay: 0.62 });
+      }
     }, riserDuration);
   },
 
@@ -543,6 +582,26 @@ export const GameAudio = {
         delay: i * 0.055
       });
     }
+  },
+
+  // FRESH START (roadmap Phase 8) : carillon ascendant distinct de
+  // playColorShift() (perfect clear) — timbre plus doux/aéré (sine plutôt
+  // que triangle, tenue plus longue) pour ne pas se confondre avec la
+  // récompense de maîtrise qu'est un perfect clear ; ce son accompagne un
+  // sauvetage, pas un exploit.
+  playFreshBoard() {
+    const base = 392;
+
+    for (let i = 0; i < 5; i++) {
+      this.playTone(this.noteFreq(base, i), {
+        duration: 0.16,
+        type: "sine",
+        gain: 0.26,
+        delay: i * 0.05
+      });
+    }
+
+    this.playTone(base * 2, { duration: 0.34, type: "sine", gain: 0.24, delay: 0.24 });
   },
 
   playError() {
@@ -564,7 +623,9 @@ export const GameAudio = {
     if (document.hidden) return;
     if (!window.speechSynthesis || typeof SpeechSynthesisUtterance !== "function") return;
 
-    const words = ["Nice!", "Great!", "Awesome!", "Amazing!", "Unreal!"];
+    // Phase 11 : mots étendus à 8 paliers (voir sampleUrls/playPraise
+    // ci-dessus pour la même extension côté échantillons).
+    const words = ["Nice!", "Great!", "Awesome!", "Amazing!", "Unreal!", "Incredible!", "Godlike!", "Legendary!"];
     const text = words[Math.min(Math.max(level, 1), words.length) - 1];
 
     try {
