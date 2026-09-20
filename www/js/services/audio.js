@@ -96,8 +96,8 @@ export const GameAudio = {
     // (cf. loadSamples ci-dessous) et playPraise() retombe sur les notes
     // synthétisées — exactement le même mécanisme de surcouche optionnelle
     // que les SFX par environnement (services/environment.js).
-    incredible: "audio/incredible.mp3",
-    godlike: "audio/godlike.mp3",
+    insane: "audio/insane.mp3",
+    divine: "audio/divine.mp3",
     legendary: "audio/legendary.mp3"
   },
 
@@ -522,7 +522,7 @@ export const GameAudio = {
     // n'ont pas (encore) d'échantillon dédié — playSample() renvoie false
     // pour eux et le code retombe naturellement sur les notes synthétisées
     // ci-dessous, exactement comme pour n'importe quel échantillon manquant.
-    const names = ["nice", "great", "awesome", "amazing", "unreal", "incredible", "godlike", "legendary"];
+    const names = ["nice", "great", "awesome", "amazing", "unreal", "insane", "divine", "legendary"];
     const name = names[Math.min(Math.max(level, 1), 8) - 1];
 
     this.playRiser(level);
@@ -625,7 +625,7 @@ export const GameAudio = {
 
     // Phase 11 : mots étendus à 8 paliers (voir sampleUrls/playPraise
     // ci-dessus pour la même extension côté échantillons).
-    const words = ["Nice!", "Great!", "Awesome!", "Amazing!", "Unreal!", "Incredible!", "Godlike!", "Legendary!"];
+    const words = ["Nice!", "Great!", "Awesome!", "Amazing!", "Unreal!", "Insane!", "Divine!", "Legendary!"];
     const text = words[Math.min(Math.max(level, 1), words.length) - 1];
 
     try {
