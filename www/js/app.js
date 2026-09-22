@@ -35,11 +35,15 @@ import { RateUs } from "./services/rateus.js";
 import { VisualTheme } from "./services/visualtheme.js";
 import { GameAudio } from "./services/audio.js";
 import { Haptics } from "./services/haptics.js";
-import { ADS } from "./config/gameConfig.js";
+import { ADS, COINS } from "./config/gameConfig.js";
 import { LoadingScreen } from "./ui/loading.js";
 import { GameEntranceFX } from "./ui/game-entrance.js";
 import { MenuEntranceFX } from "./ui/menu-entrance.js";
 import { Environments } from "./services/environment.js";
+import { Economy } from "./services/economy.js";
+import { Achievements } from "./services/achievements.js";
+import { Trophies } from "./ui/trophies.js";
+import { Marketplace } from "./ui/marketplace.js";
 
 export const App = {
   lastBackPress: 0,
@@ -50,17 +54,22 @@ export const App = {
 
     Theme.init();
     Settings.load();
+    Economy.init();
+    Achievements.init();
     Game.init();
     Menu.init();
     Tutorial.init();
     Ads.init();
     RateUs.init();
     VisualTheme.init();
+    Trophies.init();
+    Marketplace.init();
     this.bindUI();
     this.bindBackButton();
     this.bindButtonPop();
     this.bindVisibility();
-    this.updateAdsUI();
+    this.bindEconomyUI();
+    this.updateFreshBoardPrice();
 
     await this.bootLoad();
 
@@ -220,6 +229,18 @@ export const App = {
       VisualTheme.closePage();
       return;
     }
+    const trophyScreen = document.getElementById("trophyScreen");
+    if (trophyScreen && trophyScreen.classList.contains("active")) {
+      GameAudio.playClick();
+      Trophies.closePage();
+      return;
+    }
+    const marketplaceScreen = document.getElementById("marketplaceScreen");
+    if (marketplaceScreen && marketplaceScreen.classList.contains("active")) {
+      GameAudio.playClick();
+      Marketplace.closePage();
+      return;
+    }
     const now = Date.now();
     if (this.lastBackPress && now - this.lastBackPress < 2000) {
       if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App) {
@@ -244,14 +265,69 @@ export const App = {
       }, 320);
     }, true);
   },
-  updateAdsUI() {
-    const btn = document.getElementById("adsBlockBtn");
-    const label = document.getElementById("adsBlockLabel");
-    if (!btn) return;
-    const on = Boolean(Settings.data.adsBlocked);
-    btn.classList.toggle("on", on);
-    if (label) {
-      label.textContent = on ? "ADS REMOVED" : "REMOVE ADS";
+  // ---------- Phase 5 (Coins, Trophées, Marketplace) ----------
+  bindEconomyUI() {
+    const coinBtn = document.getElementById("coinCounterBtn");
+    const trophyBtn = document.getElementById("trophyBtn");
+    const marketplaceBtn = document.getElementById("marketplaceBtn");
+
+    if (coinBtn) {
+      coinBtn.addEventListener("click", () => {
+        GameAudio.unlock();
+        GameAudio.playClick();
+        Haptics.vibrate(15);
+        setTimeout(() => Marketplace.openPage(), 160);
+      });
+    }
+
+    if (trophyBtn) {
+      trophyBtn.addEventListener("click", () => {
+        GameAudio.unlock();
+        GameAudio.playClick();
+        Haptics.vibrate(15);
+        setTimeout(() => Trophies.openPage(), 160);
+      });
+    }
+
+    if (marketplaceBtn) {
+      marketplaceBtn.addEventListener("click", () => {
+        GameAudio.unlock();
+        GameAudio.playClick();
+        Haptics.vibrate(15);
+        setTimeout(() => Marketplace.openPage(), 160);
+      });
+    }
+
+    this.updateCoinCounter(Economy.balance);
+
+    Economy.onChange((balance) => {
+      this.updateCoinCounter(balance);
+      this.updateFreshBoardPrice();
+    });
+  },
+
+  updateCoinCounter(balance) {
+    const el = document.getElementById("coinCounterValue");
+    if (!el) return;
+
+    el.textContent = balance;
+    el.classList.remove("bump");
+    void el.offsetWidth;
+    el.classList.add("bump");
+  },
+
+  // Prix de FRESH START (roadmap Phase 5) : affiché une seule fois à
+  // l'init depuis la config (source de vérité unique), puis l'état
+  // "insuffisant" de la carte est rafraîchi à chaque variation du
+  // solde — sans effet visible tant que le panneau Game Over n'est pas
+  // ouvert, mais toujours à jour au moment où il s'ouvre.
+  updateFreshBoardPrice() {
+    const valueEl = document.getElementById("freshBoardPriceValue");
+    if (valueEl) valueEl.textContent = COINS.FRESH_START_COST;
+
+    const card = document.getElementById("freshBoardBtn");
+    if (card) {
+      card.classList.toggle("is-unaffordable", !Economy.canAfford(COINS.FRESH_START_COST));
     }
   },
   celebrateEl(el) {
@@ -283,7 +359,6 @@ export const App = {
     const aboutUsBackBtn = document.getElementById("aboutUsBackBtn");
     const bestScore = document.querySelector(".best-score");
     const availablePill = document.getElementById("availablePill");
-    const adsBlockBtn = document.getElementById("adsBlockBtn");
     bestScore.addEventListener("click", () => {
       GameAudio.unlock();
       GameAudio.playClick();
@@ -295,22 +370,6 @@ export const App = {
       GameAudio.playClick();
       this.celebrateEl(availablePill);
     });
-    if (adsBlockBtn) {
-      adsBlockBtn.addEventListener("click", () => {
-        GameAudio.unlock();
-        GameAudio.playClick();
-        Haptics.vibrate(20);
-        Settings.data.adsBlocked = !Settings.data.adsBlocked;
-        Settings.save();
-        this.updateAdsUI();
-        if (Settings.data.adsBlocked) {
-          Ads.hideBanner();
-        } else {
-          Ads.preloadInterstitial();
-          Ads.preloadRewarded();
-        }
-      });
-    }
     settingsBtn.addEventListener("click", () => {
       GameAudio.unlock();
       GameAudio.playClick();
