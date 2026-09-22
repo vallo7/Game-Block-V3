@@ -148,6 +148,10 @@ export const STORAGE_KEYS = {
   tutorial: "gameblock_tutorial_v1",
   rateUs: "gameblock_rateus_v1",
   visualTheme: "gameblock_visual_theme_v1",
+  coins: "gameblock_coins_v1",
+  trophies: "gameblock_trophies_v1",
+  trophyStats: "gameblock_trophy_stats_v1",
+  themeUnlocks: "gameblock_theme_unlocks_v1",
   legacy: {
     settings: "inkblast_settings_v2",
     best: "inkblast_best_v2",
@@ -165,4 +169,51 @@ export const SETTINGS_DEFAULTS = {
   vibration: true,
   adsBlocked: false
 };
+
+// ---------- Coins (économie, roadmap Phase 5) ----------
+// Économie volontairement rare (demande explicite) : une seule source
+// répétable en jeu (Perfect Clear), le reste de la progression "gratuite"
+// vient des trophées (one-shot, cf. services/achievements.js) — pour que
+// la Marketplace (recharge en argent réel, à brancher plus tard) garde
+// un vrai intérêt plutôt que d'être redondante avec un farming facile.
+export const COINS = {
+  PERFECT_CLEAR: 8,
+  FRESH_START_COST: 25
+};
+
+// ---------- Marketplace ----------
+// FRESH_START_COST vit dans COINS (consommé côté jeu, pas Marketplace).
+// THEME_PRICES : uniquement les thèmes débloqués par achat direct en
+// Coins (filière 3, roadmap §3.3) — Halloween se débloque par la
+// mécanique Perfect Clear x3 (filière 2), pas par un prix ici.
+// COIN_PACKS : pas de plugin IAP réel installé dans le projet pour
+// l'instant (seulement @capacitor-community/admob) — ces packs
+// créditent directement le solde au tap, exactement comme les IDs
+// AdMob de test créditent une pub "gratuite" pendant le développement.
+// `priceLabel` est un espace réservé visuel, à remplacer par le vrai
+// prix du store une fois un plugin d'achat in-app branché (même
+// bascule que les IDs AdMob réels, roadmap §6 Phase 6).
+export const MARKETPLACE = {
+  THEME_PRICES: {
+    hell: 150
+  },
+  COIN_PACKS: [
+    { id: "pack-handful", coins: 100, bonus: 0, priceLabel: "$0.99" },
+    { id: "pack-pouch", coins: 550, bonus: 10, priceLabel: "$4.99", badge: null },
+    { id: "pack-chest", coins: 1200, bonus: 20, priceLabel: "$9.99", badge: "BEST VALUE" },
+    { id: "pack-vault", coins: 3000, bonus: 35, priceLabel: "$19.99", badge: "MOST COINS" }
+  ]
+};
+
+// ---------- Trophées : valeurs par défaut des statistiques à vie
+// persistées (services/achievements.js) ----------
+export const TROPHY_STATS_DEFAULTS = {
+  perfectClears: 0,
+  linesCleared: 0,
+  gamesPlayed: 0,
+  bestBeatenCount: 0,
+  themesPlayed: [],
+  secretTraceDone: false
+};
+
 
