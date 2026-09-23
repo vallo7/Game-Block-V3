@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Vérifie que les 31 fichiers binaires attendus par le code sont bien
+# Vérifie que les fichiers binaires attendus par le code sont bien
 # présents (25 historiques + 4 pour le moteur d'environnements + 2
-# fonds d'écran de jeu dédiés). À lancer depuis la racine de www/ :
+# fonds d'écran de jeu Meadow/Frozen + 2 fonds d'écran de jeu
+# Halloween/Inferno, roadmap Phase 4). À lancer depuis la racine de
+# www/ :
 #   bash verify-assets.sh
 
 files=(
@@ -36,6 +38,8 @@ files=(
   "img/ui/best-score-ice.png"
   "img/backgrounds/theme-default-game-bg.jpg"
   "img/backgrounds/theme-ice-game-bg.jpg"
+  "img/backgrounds/theme-halloween-game-bg.jpg"
+  "img/backgrounds/theme-hell-game-bg.jpg"
 )
 
 missing=0
@@ -50,7 +54,7 @@ done
 
 echo ""
 if [ "$missing" -eq 0 ]; then
-  echo "Tout est present (31/31)."
+  echo "Tout est present (${#files[@]}/${#files[@]})."
 else
-  echo "$missing fichier(s) manquant(s) sur 31."
+  echo "$missing fichier(s) manquant(s) sur ${#files[@]}."
 fi
