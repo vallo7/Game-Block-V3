@@ -95,7 +95,6 @@ rel="stylesheet"
      retrouvent donc visuellement posés dessus. -->
 <div class="menu-bottom-bar" aria-hidden="true"></div>
 <div class="bottom-actions-row">
-<div class="dock-cluster">
 <button id="homeSettingsBtn" class="quick-btn home-settings-btn" aria-label="Settings">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <circle cx="12" cy="12" r="3"></circle>
@@ -113,8 +112,6 @@ rel="stylesheet"
 </svg>
 <span class="trophy-badge-dot" aria-hidden="true"></span>
 </button>
-</div>
-<div class="dock-cluster">
 <button id="marketplaceBtn" class="quick-btn marketplace-btn" aria-label="Marketplace">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <path d="M6 8h12l-1 12H7L6 8Z"></path>
@@ -130,7 +127,6 @@ rel="stylesheet"
 <circle cx="16.8" cy="10.8" r="1.15" fill="currentColor" stroke="none"></circle>
 </svg>
 </button>
-</div>
 </div>
 </section>
 <!-- HOME SETTINGS -->
@@ -241,12 +237,22 @@ rel="stylesheet"
 <!-- GAME -->
 <section id="gameScreen" class="screen">
 <div class="game-top">
+<div class="game-top-left">
 <button id="settingsBtn" class="top-btn" aria-label="Pause">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <rect x="6" y="4" width="4.5" height="16" rx="1.5"></rect>
 <rect x="13.5" y="4" width="4.5" height="16" rx="1.5"></rect>
 </svg>
 </button>
+<button id="gameCoinCounterBtn" class="coin-counter coin-counter-game" aria-label="Coins — Open Marketplace">
+<svg viewBox="0 0 24 24" class="svg-icon coin-icon">
+<circle cx="12" cy="12" r="9"></circle>
+<path d="M12 7.5 13.2 10.4 16.5 10.7 14 12.9 14.7 16.2 12 14.4 9.3 16.2 10 12.9 7.5 10.7 10.8 10.4Z" class="coin-star"></path>
+</svg>
+<span id="gameCoinCounterValue">0</span>
+<span class="coin-counter-plus" aria-hidden="true">+</span>
+</button>
+</div>
 <div class="best-score top-btn" aria-label="Best score">
 <span class="best-icon">
 <svg viewBox="0 0 24 24" class="svg-icon">
@@ -443,6 +449,14 @@ rel="stylesheet"
      core/game-flow.js#startGameOver). -->
 <div id="gameOverOverlay" class="overlay hidden" aria-hidden="true">
 <div class="gameover-panel">
+<button id="gameOverCoinCounterBtn" class="coin-counter coin-counter-game coin-counter-corner" aria-label="Coins — Open Marketplace">
+<svg viewBox="0 0 24 24" class="svg-icon coin-icon">
+<circle cx="12" cy="12" r="9"></circle>
+<path d="M12 7.5 13.2 10.4 16.5 10.7 14 12.9 14.7 16.2 12 14.4 9.3 16.2 10 12.9 7.5 10.7 10.8 10.4Z" class="coin-star"></path>
+</svg>
+<span id="gameOverCoinCounterValue">0</span>
+<span class="coin-counter-plus" aria-hidden="true">+</span>
+</button>
 <div class="defeat-msg">NO MORE MOVES!</div>
 <div class="countdown-wrap">
 <svg class="countdown-ring" viewBox="0 0 100 100">
