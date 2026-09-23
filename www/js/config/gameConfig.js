@@ -152,6 +152,7 @@ export const STORAGE_KEYS = {
   trophies: "gameblock_trophies_v1",
   trophyStats: "gameblock_trophy_stats_v1",
   themeUnlocks: "gameblock_theme_unlocks_v1",
+  adRewards: "gameblock_ad_rewards_v1",
   legacy: {
     settings: "inkblast_settings_v2",
     best: "inkblast_best_v2",
@@ -171,31 +172,36 @@ export const SETTINGS_DEFAULTS = {
 };
 
 // ---------- Coins (économie, roadmap Phase 5) ----------
-// Économie volontairement rare (demande explicite) : une seule source
-// répétable en jeu (Perfect Clear), le reste de la progression "gratuite"
-// vient des trophées (one-shot, cf. services/achievements.js) — pour que
-// la Marketplace (recharge en argent réel, à brancher plus tard) garde
-// un vrai intérêt plutôt que d'être redondante avec un farming facile.
+// Économie durcie sur demande explicite (2e passe) : Perfect Clear reste
+// la SEULE source répétable en jeu, mais rapporte très peu — l'essentiel
+// de la progression "gratuite" vient désormais des trophées (one-shot,
+// cf. services/achievements.js, seuils eux-mêmes relevés) et de la
+// nouvelle section "Watch Ads for Coins" de la Marketplace (limitée par
+// jour, cf. AD_REWARD/AD_DAILY_LIMIT ci-dessous — sans quoi elle
+// annulerait complètement la rareté voulue). Objectif inchangé : que la
+// recharge en argent réel garde un vrai intérêt plutôt que d'être
+// redondante avec un farming facile.
 export const COINS = {
-  PERFECT_CLEAR: 8,
-  FRESH_START_COST: 25
+  PERFECT_CLEAR: 3,
+  FRESH_START_COST: 25,
+  AD_REWARD: 15,
+  AD_DAILY_LIMIT: 5
 };
 
 // ---------- Marketplace ----------
 // FRESH_START_COST vit dans COINS (consommé côté jeu, pas Marketplace).
 // THEME_PRICES : uniquement les thèmes débloqués par achat direct en
 // Coins (filière 3, roadmap §3.3) — Halloween se débloque par la
-// mécanique Perfect Clear x3 (filière 2), pas par un prix ici.
-// COIN_PACKS : pas de plugin IAP réel installé dans le projet pour
-// l'instant (seulement @capacitor-community/admob) — ces packs
-// créditent directement le solde au tap, exactement comme les IDs
-// AdMob de test créditent une pub "gratuite" pendant le développement.
-// `priceLabel` est un espace réservé visuel, à remplacer par le vrai
-// prix du store une fois un plugin d'achat in-app branché (même
-// bascule que les IDs AdMob réels, roadmap §6 Phase 6).
+// mécanique Perfect Clear x3 (filière 2), pas par un prix ici. Prix
+// d'Inferno relevé (2e passe, demande explicite "thèmes plus chers") —
+// cohérent avec une économie de Coins désormais beaucoup plus rare.
+// COIN_PACKS : pas de vraie transaction IAP branchée pour l'instant
+// (voir la note détaillée plus haut dans la version précédente de ce
+// fichier) — inchangé par cette passe, qui ne touche qu'à ce qui est
+// gratuit/gagnable en jeu.
 export const MARKETPLACE = {
   THEME_PRICES: {
-    hell: 150
+    hell: 500
   },
   COIN_PACKS: [
     { id: "pack-handful", coins: 100, bonus: 0, priceLabel: "$0.99" },
@@ -212,8 +218,8 @@ export const TROPHY_STATS_DEFAULTS = {
   linesCleared: 0,
   gamesPlayed: 0,
   bestBeatenCount: 0,
+  highPraiseCount: 0,
   themesPlayed: [],
   secretTraceDone: false
 };
-
 
