@@ -207,6 +207,24 @@ export const App = {
     const settingsOverlay = document.getElementById("settingsOverlay");
     const gameOverOverlay = document.getElementById("gameOverOverlay");
     const gameScreen = document.getElementById("gameScreen");
+    // Trophées/Marketplace en premier (roadmap Phase 5 2e passe) : ces
+    // deux tiroirs peuvent désormais s'ouvrir par-dessus l'écran de jeu
+    // ou le panneau de défaite (compteur de Coins), pas seulement
+    // depuis l'accueil — il faut donc les refermer avant même de tester
+    // gameOverOverlay/gameScreen, sous peine de déclencher le retour au
+    // menu du jeu par erreur alors que seul le tiroir devrait se fermer.
+    const trophyScreen = document.getElementById("trophyScreen");
+    if (trophyScreen && trophyScreen.classList.contains("active")) {
+      GameAudio.playClick();
+      Trophies.closePage();
+      return;
+    }
+    const marketplaceScreen = document.getElementById("marketplaceScreen");
+    if (marketplaceScreen && marketplaceScreen.classList.contains("active")) {
+      GameAudio.playClick();
+      Marketplace.closePage();
+      return;
+    }
     if (!settingsOverlay.classList.contains("hidden")) {
       GameAudio.playClick();
       this.closeSettings();
@@ -227,18 +245,6 @@ export const App = {
     if (themeScreen && themeScreen.classList.contains("active")) {
       GameAudio.playClick();
       VisualTheme.closePage();
-      return;
-    }
-    const trophyScreen = document.getElementById("trophyScreen");
-    if (trophyScreen && trophyScreen.classList.contains("active")) {
-      GameAudio.playClick();
-      Trophies.closePage();
-      return;
-    }
-    const marketplaceScreen = document.getElementById("marketplaceScreen");
-    if (marketplaceScreen && marketplaceScreen.classList.contains("active")) {
-      GameAudio.playClick();
-      Marketplace.closePage();
       return;
     }
     const now = Date.now();
@@ -268,17 +274,21 @@ export const App = {
   // ---------- Phase 5 (Coins, Trophées, Marketplace) ----------
   bindEconomyUI() {
     const coinBtn = document.getElementById("coinCounterBtn");
+    const gameCoinBtn = document.getElementById("gameCoinCounterBtn");
+    const gameOverCoinBtn = document.getElementById("gameOverCoinCounterBtn");
     const trophyBtn = document.getElementById("trophyBtn");
     const marketplaceBtn = document.getElementById("marketplaceBtn");
 
-    if (coinBtn) {
-      coinBtn.addEventListener("click", () => {
-        GameAudio.unlock();
-        GameAudio.playClick();
-        Haptics.vibrate(15);
-        setTimeout(() => Marketplace.openPage(), 160);
-      });
-    }
+    const openMarketplace = () => {
+      GameAudio.unlock();
+      GameAudio.playClick();
+      Haptics.vibrate(15);
+      setTimeout(() => Marketplace.openPage(), 160);
+    };
+
+    if (coinBtn) coinBtn.addEventListener("click", openMarketplace);
+    if (gameCoinBtn) gameCoinBtn.addEventListener("click", openMarketplace);
+    if (gameOverCoinBtn) gameOverCoinBtn.addEventListener("click", openMarketplace);
 
     if (trophyBtn) {
       trophyBtn.addEventListener("click", () => {
@@ -290,12 +300,7 @@ export const App = {
     }
 
     if (marketplaceBtn) {
-      marketplaceBtn.addEventListener("click", () => {
-        GameAudio.unlock();
-        GameAudio.playClick();
-        Haptics.vibrate(15);
-        setTimeout(() => Marketplace.openPage(), 160);
-      });
+      marketplaceBtn.addEventListener("click", openMarketplace);
     }
 
     this.updateCoinCounter(Economy.balance);
@@ -307,13 +312,15 @@ export const App = {
   },
 
   updateCoinCounter(balance) {
-    const el = document.getElementById("coinCounterValue");
-    if (!el) return;
+    ["coinCounterValue", "gameCoinCounterValue", "gameOverCoinCounterValue"].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
 
-    el.textContent = balance;
-    el.classList.remove("bump");
-    void el.offsetWidth;
-    el.classList.add("bump");
+      el.textContent = balance;
+      el.classList.remove("bump");
+      void el.offsetWidth;
+      el.classList.add("bump");
+    });
   },
 
   // Prix de FRESH START (roadmap Phase 5) : affiché une seule fois à
