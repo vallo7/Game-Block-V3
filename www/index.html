@@ -21,6 +21,7 @@ rel="stylesheet"
 <link rel="stylesheet" href="css/overlays.css" />
 <link rel="stylesheet" href="css/theme-page.css" />
 <link rel="stylesheet" href="css/trophy-page.css" />
+<link rel="stylesheet" href="css/quest-page.css" />
 <link rel="stylesheet" href="css/marketplace-page.css" />
 <link rel="stylesheet" href="css/tutorial.css" />
 <link rel="stylesheet" href="css/responsive.css" />
@@ -36,15 +37,15 @@ rel="stylesheet"
 <div id="loadingScreen" class="loading-screen">
 <div class="loading-content replay">
 <img src="img/logo-gameblock.png" alt="Game Block" class="loading-logo" />
-<div class="loading-loader" aria-hidden="true">
-<span class="loading-loader-block" style="--i:0"></span>
-<span class="loading-loader-block" style="--i:1"></span>
-<span class="loading-loader-block" style="--i:2"></span>
-<span class="loading-loader-block" style="--i:3"></span>
-<span class="loading-loader-block" style="--i:4"></span>
-</div>
-<div class="loading-progress-track" aria-hidden="true">
-<div class="loading-progress-fill" id="loadingProgressFill"></div>
+<div class="loading-blockbar" id="loadingBlockbar" aria-hidden="true">
+<span class="loading-blockbar-cell"></span>
+<span class="loading-blockbar-cell"></span>
+<span class="loading-blockbar-cell"></span>
+<span class="loading-blockbar-cell"></span>
+<span class="loading-blockbar-cell"></span>
+<span class="loading-blockbar-cell"></span>
+<span class="loading-blockbar-cell"></span>
+<span class="loading-blockbar-cell"></span>
 </div>
 </div>
 </div>
@@ -59,6 +60,18 @@ rel="stylesheet"
 <span id="coinCounterValue">0</span>
 <span class="coin-counter-plus" aria-hidden="true">+</span>
 </button>
+<div class="menu-best-score" aria-label="Best score">
+<span class="menu-best-score-icon">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<path d="M8 21h8"></path>
+<path d="M12 17v4"></path>
+<path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"></path>
+<path d="M17 5h2a2 2 0 0 1-2 4"></path>
+<path d="M7 5H5a2 2 0 0 0 2 4"></path>
+</svg>
+</span>
+<span id="menuBestScoreValue">0</span>
+</div>
 </div>
 <div class="menu-hero">
 <img src="img/logo-gameblock.png" alt="Game Block" class="menu-logo" />
@@ -111,6 +124,13 @@ rel="stylesheet"
 <path d="M10.5 17h3l.5 2.2a1 1 0 0 1-1 1.3h-2a1 1 0 0 1-1-1.3z"></path>
 </svg>
 <span class="trophy-badge-dot" aria-hidden="true"></span>
+</button>
+<button id="questBtn" class="quick-btn quest-btn" aria-label="Daily Quests">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<rect x="4" y="4" width="16" height="16" rx="3"></rect>
+<path d="m8 12 2.5 2.5L16 9"></path>
+</svg>
+<span class="quest-badge-dot" aria-hidden="true"></span>
 </button>
 <button id="marketplaceBtn" class="quick-btn marketplace-btn" aria-label="Marketplace">
 <svg viewBox="0 0 24 24" class="svg-icon">
@@ -344,6 +364,20 @@ rel="stylesheet"
 <span aria-hidden="true"></span>
 </div>
 <div class="trophy-scroll" id="trophyContent"></div>
+</section>
+<!-- QUESTS (Phase 9) -->
+<section id="questScreen" class="screen drawer-screen">
+<div id="questScreenBg" class="drawer-screen-bg" aria-hidden="true"></div>
+<div class="theme-page-header">
+<button id="questBackBtn" class="mini-btn btn-back" aria-label="Back">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<path d="M15 6 9 12l6 6"></path>
+</svg>
+</button>
+<h2 class="theme-page-title">Quests</h2>
+<span id="questCountdown">Resets in --</span>
+</div>
+<div class="quest-scroll" id="questContent"></div>
 </section>
 <!-- MARKETPLACE -->
 <section id="marketplaceScreen" class="screen drawer-screen">
