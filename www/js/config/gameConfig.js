@@ -110,6 +110,15 @@ export const PRAISE = {
     { level: 8, word: "LEGENDARY!", threshold: 22 }
   ],
   EMPTIED_MIN_LEVEL: 6,
+  // Barème dynamique (demande explicite) : chaque ligne/colonne EN PLUS
+  // de la première, effacée en simultané dans le même coup, ajoute ce
+  // nombre de points de "power" — nettement plus qu'un point de combo
+  // (streak) classique. Sépare les deux axes de progression du praise
+  // (core/game-rules.js#validate) au lieu de les additionner à parts
+  // égales : un clear à 3-4 lignes d'un coup grimpe fort dans le barème
+  // même sans aucun combo, et un long streak de simples grimpe fort même
+  // sans aucun clear multi-lignes.
+  SIMULTANEOUS_LINE_BONUS: 4,
   // Tailles "idéales" par palier (game-rules.js#fitPraiseText les réduit
   // si besoin pour tenir à l'écran quel que soit l'appareil — cf. round
   // de suivi : les mots longs des paliers hauts débordaient sur mobile
@@ -150,6 +159,8 @@ export const STORAGE_KEYS = {
   visualTheme: "gameblock_visual_theme_v1",
   coins: "gameblock_coins_v1",
   trophies: "gameblock_trophies_v1",
+  starTrophies: "gameblock_star_trophies_v1",
+  quests: "gameblock_quests_v1",
   trophyStats: "gameblock_trophy_stats_v1",
   themeUnlocks: "gameblock_theme_unlocks_v1",
   adRewards: "gameblock_ad_rewards_v1",
@@ -181,8 +192,13 @@ export const SETTINGS_DEFAULTS = {
 // annulerait complètement la rareté voulue). Objectif inchangé : que la
 // recharge en argent réel garde un vrai intérêt plutôt que d'être
 // redondante avec un farming facile.
+// Économie resserrée (4e passe, demande explicite "triple la rareté
+// d'obtention des coins, sauf watch ads") : Perfect Clear reste la seule
+// source répétable en jeu (cf. note plus haut) — son gain est divisé par 3.
+// AD_REWARD (Watch Ads) reste volontairement inchangé, explicitement
+// exclu de cette passe.
 export const COINS = {
-  PERFECT_CLEAR: 3,
+  PERFECT_CLEAR: 1,
   FRESH_START_COST: 25,
   AD_REWARD: 15,
   AD_DAILY_LIMIT: 5
@@ -191,8 +207,9 @@ export const COINS = {
 // ---------- Marketplace ----------
 // FRESH_START_COST vit dans COINS (consommé côté jeu, pas Marketplace).
 // THEME_PRICES : uniquement les thèmes débloqués par achat direct en
-// Coins (filière 3, roadmap §3.3) — Halloween se débloque par la
-// mécanique Perfect Clear x3 (filière 2), pas par un prix ici. Prix
+// Coins (filière 3, roadmap §3.3) — Ice se débloque désormais par
+// condition (filière 2, combo x8), pas par un prix ici (voir
+// services/visualtheme.js#UNLOCKS et core/game-rules.js). Prix
 // d'Inferno relevé (2e passe, demande explicite "thèmes plus chers") —
 // cohérent avec une économie de Coins désormais beaucoup plus rare.
 // COIN_PACKS : pas de vraie transaction IAP branchée pour l'instant
@@ -200,14 +217,84 @@ export const COINS = {
 // fichier) — inchangé par cette passe, qui ne touche qu'à ce qui est
 // gratuit/gagnable en jeu.
 export const MARKETPLACE = {
+  // Prix quintuplés (4e passe, demande explicite). Halloween rejoint
+  // Inferno comme thème payant en Coins — il n'était pas dans
+  // THEME_PRICES avant (débloqué par condition) ; son prix ici est neuf,
+  // positionné sous celui d'Inferno. Ice prend sa place comme thème à
+  // condition (voir services/visualtheme.js#UNLOCKS et
+  // core/game-rules.js).
   THEME_PRICES: {
-    hell: 500
+    halloween: 1800,
+    hell: 2500
   },
+  // "Remove Ads" (nouveau) : point de prix standard pour ce type d'achat
+  // unique dans les jeux mobiles casual à succès.
+  REMOVE_ADS_PRICE: "$3.99",
   COIN_PACKS: [
     { id: "pack-handful", coins: 100, bonus: 0, priceLabel: "$0.99" },
     { id: "pack-pouch", coins: 550, bonus: 10, priceLabel: "$4.99", badge: null },
     { id: "pack-chest", coins: 1200, bonus: 20, priceLabel: "$9.99", badge: "BEST VALUE" },
     { id: "pack-vault", coins: 3000, bonus: 35, priceLabel: "$19.99", badge: "MOST COINS" }
+  ]
+};
+
+// ---------- Quêtes quotidiennes (roadmap Phase 9, demande explicite) ----------
+// 5 quêtes tirées au sort à chaque cycle de QUESTS.RESET_INTERVAL_MS (12h),
+// dont AD_SKIPPABLE_COUNT peuvent être complétées instantanément via une
+// pub récompensée en plus de la voie normale (jouer). Chaque modèle porte
+// 3 variantes de difficulté/récompense (targets[i] <-> reward[i]),
+// tirées au hasard à la génération du cycle pour un peu de variété d'un
+// jour à l'autre. "watchAds" est volontairement exclue des quêtes
+// ad-skippable : elle est déjà 100% pub, lui donner un raccourci pub
+// n'aurait aucun sens.
+export const QUESTS = {
+  RESET_INTERVAL_MS: 12 * 60 * 60 * 1000,
+  SLOT_COUNT: 5,
+  AD_SKIPPABLE_COUNT: 3,
+  REMINDER_COOLDOWN_MS: 30 * 60 * 1000,
+  TEMPLATES: [
+    {
+      id: "score",
+      track: "score",
+      targets: [5000, 10000, 20000],
+      reward: [10, 16, 24],
+      label: (n) => `Score ${n.toLocaleString()} points in a single run`
+    },
+    {
+      id: "lines",
+      track: "lines",
+      targets: [40, 80, 150],
+      reward: [10, 16, 24],
+      label: (n) => `Clear ${n} lines`
+    },
+    {
+      id: "perfectClear",
+      track: "perfectClear",
+      targets: [1, 2, 3],
+      reward: [12, 18, 26],
+      label: (n) => `Achieve ${n} Perfect Clear${n > 1 ? "s" : ""}`
+    },
+    {
+      id: "combo",
+      track: "combo",
+      targets: [6, 10, 15],
+      reward: [10, 16, 24],
+      label: (n) => `Reach a x${n} combo`
+    },
+    {
+      id: "games",
+      track: "games",
+      targets: [2, 3, 5],
+      reward: [8, 14, 20],
+      label: (n) => `Play ${n} games`
+    },
+    {
+      id: "watchAds",
+      track: "watchAd",
+      targets: [1, 2, 3],
+      reward: [8, 12, 18],
+      label: (n) => `Watch ${n} ad${n > 1 ? "s" : ""}`
+    }
   ]
 };
 
