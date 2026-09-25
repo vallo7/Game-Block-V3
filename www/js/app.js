@@ -44,6 +44,8 @@ import { Economy } from "./services/economy.js";
 import { Achievements } from "./services/achievements.js";
 import { Trophies } from "./ui/trophies.js";
 import { Marketplace } from "./ui/marketplace.js";
+import { Quests } from "./services/quests.js";
+import { QuestsUI } from "./ui/quests.js";
 
 export const App = {
   lastBackPress: 0,
@@ -64,6 +66,8 @@ export const App = {
     VisualTheme.init();
     Trophies.init();
     Marketplace.init();
+    Quests.init();
+    QuestsUI.init();
     this.bindUI();
     this.bindBackButton();
     this.bindButtonPop();
@@ -217,6 +221,12 @@ export const App = {
     if (trophyScreen && trophyScreen.classList.contains("active")) {
       GameAudio.playClick();
       Trophies.closePage();
+      return;
+    }
+    const questScreen = document.getElementById("questScreen");
+    if (questScreen && questScreen.classList.contains("active")) {
+      GameAudio.playClick();
+      QuestsUI.closePage();
       return;
     }
     const marketplaceScreen = document.getElementById("marketplaceScreen");
@@ -477,7 +487,31 @@ export const App = {
     Ads.hideBanner();
     RateUs.maybeShowOnMenu();
     VisualTheme.applyBackground("menu");
-    VisualTheme.setDepthActive(false);
+    // Le fond de l'accueil reprend désormais le même effet de
+    // "respiration"/pan lent que le fond de jeu (demande explicite,
+    // 4e passe) — auparavant réservé à showGame(), voir background.css
+    // #bgDepthPan.
+    VisualTheme.setDepthActive(true);
+    this.updateMenuBestScore();
+    QuestsUI.maybeShowReminder();
+  },
+
+  // Compteur de meilleur score de l'accueil (nouveau, demande explicite) :
+  // rafraîchi à chaque retour au menu (showMenu tourne au démarrage ET à
+  // chaque retour depuis une partie), donc toujours à jour sans lien
+  // supplémentaire à câbler côté Game.
+  updateMenuBestScore() {
+    const el = document.getElementById("menuBestScoreValue");
+    if (!el) return;
+
+    const previous = el.textContent;
+    el.textContent = Game.best;
+
+    if (String(Game.best) !== previous) {
+      el.classList.remove("bump");
+      void el.offsetWidth;
+      el.classList.add("bump");
+    }
   },
   showGame() {
     if (!Game.runActive) {
