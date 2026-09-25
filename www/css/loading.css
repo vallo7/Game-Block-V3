@@ -1,0 +1,152 @@
+/*
+  css/loading.css
+  --------------------------------------------------------------------
+  Écran de chargement (logo + barre de chargement), réutilisé au
+  démarrage de l'app, à l'entrée en partie et au retour au menu
+  (ui/loading.js).
+
+  7e passe (demande explicite) : les deux indicateurs de progression
+  précédents (blocs qui rebondissaient sans lien avec la progression
+  réelle + barre de remplissage classique en dessous) sont remplacés
+  par UNE seule barre : 8 mini-blocs colorés (palette du jeu,
+  COLOR_BANK) qui se remplissent un par un avec la progression réelle
+  (ui/loading.js#setProgress) — plus fun, plus "Game Block", et il n'y
+  a plus qu'un seul indicateur à lire.
+
+  Transition "bubble pop" (demande explicite) : l'écran ne glisse plus
+  en rideau (translateY) mais se découpe via clip-path — un cercle qui
+  s'étend depuis le centre pour couvrir l'écran (apparition, "la bulle
+  gonfle") et se réduit à un point pour disparaître (fermeture, "la
+  bulle éclate"), avec un petit flash radial au moment exact où elle
+  finit de se résorber (::after, .loadingBubblePop) pour ponctuer le
+  "pop".
+
+  Visible par défaut (avant même l'exécution du JS) pour couvrir le
+  tout premier affichage ; masqué/affiché ensuite via la classe
+  .hidden. Les animations d'entrée du contenu (logo, barre) restent des
+  flourishes internes à cet écran — rejouables à volonté via la classe
+  .replay (voir ui/loading.js#show), sans lien avec la transition de
+  bulle elle-même.
+  --------------------------------------------------------------------
+*/
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: var(--theme-bg);
+  clip-path: circle(150% at 50% 50%);
+  transition: clip-path 520ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: clip-path;
+}
+.loading-screen.hidden {
+  clip-path: circle(0% at 50% 50%);
+  pointer-events: none;
+}
+/* Flash radial ponctuant le "pop" final, au moment exact où la bulle
+   finit de se résorber. */
+.loading-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 62%);
+  opacity: 0;
+}
+.loading-screen.hidden::after {
+  animation: loadingBubblePop 520ms ease-out;
+}
+@keyframes loadingBubblePop {
+  0% { opacity: 0; transform: scale(0.25); }
+  32% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+
+.loading-content { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+
+.loading-logo {
+  width: min(62vw, 300px);
+  height: auto;
+  opacity: 0;
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.35));
+}
+.loading-content.replay .loading-logo {
+  animation:
+    loadingLogoIn 900ms cubic-bezier(0.22, 1.6, 0.4, 1) forwards,
+    loadingLogoBreathe 2.4s 900ms infinite ease-in-out;
+}
+
+/* ---------- Barre-bloc (7e passe) ----------
+   8 cellules façon mini-blocs de jeu, colorées en boucle sur la même
+   palette que COLOR_BANK (config/gameConfig.js) — une teinte différente
+   par cellule plutôt qu'une barre unicolore, pour rester "Game Block"
+   jusque dans l'écran de chargement. */
+.loading-blockbar {
+  display: flex;
+  gap: 7px;
+  padding: 11px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: var(--candy-inset), var(--shadow);
+  opacity: 0;
+}
+.loading-content.replay .loading-blockbar {
+  animation: loadingLoaderIn 450ms 520ms ease forwards;
+}
+.loading-blockbar-cell {
+  width: 17px;
+  height: 17px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+.loading-blockbar-cell.active {
+  animation: loadingCellPulse 0.9s ease-in-out infinite;
+}
+.loading-blockbar-cell.pop {
+  animation: loadingCellPop 380ms var(--spring);
+}
+@keyframes loadingCellPulse {
+  0%, 100% { transform: scale(1); opacity: 0.65; }
+  50% { transform: scale(1.14); opacity: 1; }
+}
+@keyframes loadingCellPop {
+  0% { transform: scale(0.55) rotate(-10deg); }
+  55% { transform: scale(1.4) rotate(6deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.loading-blockbar-cell:nth-child(5n+1).filled {
+  background-image: linear-gradient(180deg, #23a8fd, #0477fc);
+  box-shadow: 0 0 10px rgba(4, 119, 252, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+.loading-blockbar-cell:nth-child(5n+2).filled {
+  background-image: linear-gradient(180deg, #fcf828, #fde402);
+  box-shadow: 0 0 10px rgba(253, 228, 2, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+.loading-blockbar-cell:nth-child(5n+3).filled {
+  background-image: linear-gradient(180deg, #6bf90d, #46f30d);
+  box-shadow: 0 0 10px rgba(70, 243, 13, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+.loading-blockbar-cell:nth-child(5n+4).filled {
+  background-image: linear-gradient(180deg, #b847f9, #9a0bf9);
+  box-shadow: 0 0 10px rgba(154, 11, 249, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+.loading-blockbar-cell:nth-child(5n).filled {
+  background-image: linear-gradient(180deg, #fb59c5, #f91487);
+  box-shadow: 0 0 10px rgba(249, 20, 135, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes loadingLogoIn {
+  0% { opacity: 0; transform: scale(0.7) translateY(14px); }
+  60% { opacity: 1; transform: scale(1.06) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes loadingLogoBreathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.035) translateY(-3px); }
+}
+@keyframes loadingLoaderIn {
+  to { opacity: 1; }
+}
