@@ -91,7 +91,7 @@ rel="stylesheet"
 <path d="M8 5v14l11-7Z"></path>
 </svg>
 </span>
-<strong class="mode-name">CLASSIC</strong>
+<strong class="mode-name" data-i18n="menu.classic">CLASSIC</strong>
 </button>
 <button id="adventureModeBtn" class="mode-card mode-secondary locked" disabled aria-label="Adventure — coming soon">
 <span class="mode-icon">
@@ -99,7 +99,7 @@ rel="stylesheet"
 <path d="M8 5v14l11-7Z"></path>
 </svg>
 </span>
-<strong class="mode-name">ADVENTURE</strong>
+<strong class="mode-name" data-i18n="menu.adventure">ADVENTURE</strong>
 </button>
 </div>
 <!-- Bannière basse (round de suivi) : simple contour sur son bord
@@ -158,7 +158,7 @@ rel="stylesheet"
 <path d="M15 6 9 12l6 6"></path>
 </svg>
 </button>
-<div class="settings-title">Settings</div>
+<div class="settings-title" data-i18n="settings.title">Settings</div>
 <button id="homeSettingsCloseBtn" class="mini-btn btn-close" aria-label="Close">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <path d="M6 6l12 12"></path>
@@ -175,7 +175,7 @@ rel="stylesheet"
 <path d="M18 6a8 8 0 0 1 0 12"></path>
 </svg>
 </div>
-<span class="settings-row-label">Sound</span>
+<span class="settings-row-label" data-i18n="settings.sound">Sound</span>
 <label class="switch">
 <input type="checkbox" data-setting="sound" aria-label="Sound" />
 <span class="switch-track"><span class="switch-thumb"></span></span>
@@ -189,7 +189,7 @@ rel="stylesheet"
 <circle cx="16" cy="16" r="3"></circle>
 </svg>
 </div>
-<span class="settings-row-label">Music</span>
+<span class="settings-row-label" data-i18n="settings.music">Music</span>
 <input type="range" class="music-volume-slider" min="0" max="100" value="100" aria-label="Music volume" />
 </div>
 <div class="settings-row">
@@ -200,11 +200,24 @@ rel="stylesheet"
 <path d="M19.5 8.5v7"></path>
 </svg>
 </div>
-<span class="settings-row-label">Vibrations</span>
+<span class="settings-row-label" data-i18n="settings.vibrations">Vibrations</span>
 <label class="switch">
 <input type="checkbox" data-setting="vibration" aria-label="Vibrations" />
 <span class="switch-track"><span class="switch-thumb"></span></span>
 </label>
+</div>
+<div class="settings-row">
+<div class="settings-row-icon">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<path d="M3 5h11M9 3v2M6 5c0 4.5 3 7.5 7 8.5M13 5c-.7 3.5-3 7-8 9"></path>
+<path d="m17 12 4 9M17 12l4 9M15.5 18h6"></path>
+</svg>
+</div>
+<span class="settings-row-label" data-i18n="settings.language">Language</span>
+<div class="lang-switch" data-lang-switch>
+<button type="button" class="lang-switch-btn" data-lang="en">EN</button>
+<button type="button" class="lang-switch-btn" data-lang="fr">FR</button>
+</div>
 </div>
 </div>
 <div class="settings-about-row">
@@ -214,7 +227,7 @@ rel="stylesheet"
 <path d="M12 11v5"></path>
 <path d="M12 8h.01"></path>
 </svg>
-<span>About Us</span>
+<span data-i18n="settings.aboutUs">About Us</span>
 </button>
 </div>
 </div>
@@ -224,7 +237,7 @@ rel="stylesheet"
 <div class="settings-panel">
 <div class="settings-top">
 <span></span>
-<div class="settings-title">About Us</div>
+<div class="settings-title" data-i18n="settings.aboutUs">About Us</div>
 <button id="aboutUsBackBtn" class="mini-btn btn-back" aria-label="Back">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <path d="M15 6 9 12l6 6"></path>
@@ -233,7 +246,7 @@ rel="stylesheet"
 </div>
 <div class="settings-about">
 <img src="img/logo-gameblock.png" alt="Game Block" class="settings-about-logo" />
-<p class="settings-about-text">Draw. Clear. Survive.</p>
+<p class="settings-about-text" data-i18n="about.tagline">Draw. Clear. Survive.</p>
 <p class="settings-about-version">Game Block · v0.0.1</p>
 </div>
 </div>
@@ -241,7 +254,7 @@ rel="stylesheet"
 <!-- RATE US -->
 <div id="rateUsOverlay" class="overlay hidden" aria-hidden="true">
 <div class="settings-panel rate-us-panel">
-<p class="rate-us-title">Enjoying Game Block?</p>
+<p class="rate-us-title" data-i18n="rateUs.title">Enjoying Game Block?</p>
 <div class="rate-us-stars" aria-hidden="true">
 <svg viewBox="0 0 24 24" class="rate-us-star"><path d="M12 2 15 9 22 10 17 15 18 22 12 18.5 6 22 7 15 2 10 9 9Z"></path></svg>
 <svg viewBox="0 0 24 24" class="rate-us-star"><path d="M12 2 15 9 22 10 17 15 18 22 12 18.5 6 22 7 15 2 10 9 9Z"></path></svg>
@@ -249,9 +262,9 @@ rel="stylesheet"
 <svg viewBox="0 0 24 24" class="rate-us-star"><path d="M12 2 15 9 22 10 17 15 18 22 12 18.5 6 22 7 15 2 10 9 9Z"></path></svg>
 <svg viewBox="0 0 24 24" class="rate-us-star"><path d="M12 2 15 9 22 10 17 15 18 22 12 18.5 6 22 7 15 2 10 9 9Z"></path></svg>
 </div>
-<p class="rate-us-text">A quick rating helps us a lot!</p>
-<button id="rateUsBtn" class="rate-us-btn">Rate us</button>
-<button id="rateUsDismissBtn" class="rate-us-dismiss">Maybe later</button>
+<p class="rate-us-text" data-i18n="rateUs.text">A quick rating helps us a lot!</p>
+<button id="rateUsBtn" class="rate-us-btn" data-i18n="rateUs.button">Rate us</button>
+<button id="rateUsDismissBtn" class="rate-us-dismiss" data-i18n="rateUs.dismiss">Maybe later</button>
 </div>
 </div>
 <!-- GAME -->
@@ -343,7 +356,7 @@ rel="stylesheet"
 <path d="M15 6 9 12l6 6"></path>
 </svg>
 </button>
-<h2 class="theme-page-title">Themes</h2>
+<h2 class="theme-page-title" data-i18n="themes.title">Themes</h2>
 <span aria-hidden="true"></span>
 </div>
 <div class="theme-carousel-wrap">
@@ -360,7 +373,7 @@ rel="stylesheet"
 <path d="M15 6 9 12l6 6"></path>
 </svg>
 </button>
-<h2 class="theme-page-title">Trophies</h2>
+<h2 class="theme-page-title" data-i18n="trophies.title">Trophies</h2>
 <span aria-hidden="true"></span>
 </div>
 <div class="trophy-scroll" id="trophyContent"></div>
@@ -374,7 +387,7 @@ rel="stylesheet"
 <path d="M15 6 9 12l6 6"></path>
 </svg>
 </button>
-<h2 class="theme-page-title">Quests</h2>
+<h2 class="theme-page-title" data-i18n="quests.title">Quests</h2>
 <span id="questCountdown">Resets in --</span>
 </div>
 <div class="quest-scroll" id="questContent"></div>
@@ -388,7 +401,7 @@ rel="stylesheet"
 <path d="M15 6 9 12l6 6"></path>
 </svg>
 </button>
-<h2 class="theme-page-title">Marketplace</h2>
+<h2 class="theme-page-title" data-i18n="marketplace.title">Marketplace</h2>
 <span class="marketplace-header-coins">
 <svg viewBox="0 0 24 24" class="svg-icon coin-icon">
 <circle cx="12" cy="12" r="9"></circle>
@@ -409,7 +422,7 @@ rel="stylesheet"
 <path d="M7 10.5V19a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-8.5"></path>
 </svg>
 </button>
-<div class="settings-title">Pause</div>
+<div class="settings-title" data-i18n="settings.pauseTitle">Pause</div>
 <button id="settingsCloseBtn" class="mini-btn btn-close" aria-label="Close">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <path d="M6 6l12 12"></path>
@@ -426,7 +439,7 @@ rel="stylesheet"
 <path d="M18 6a8 8 0 0 1 0 12"></path>
 </svg>
 </div>
-<span class="settings-row-label">Sound</span>
+<span class="settings-row-label" data-i18n="settings.sound">Sound</span>
 <label class="switch">
 <input type="checkbox" data-setting="sound" aria-label="Sound" />
 <span class="switch-track"><span class="switch-thumb"></span></span>
@@ -440,7 +453,7 @@ rel="stylesheet"
 <circle cx="16" cy="16" r="3"></circle>
 </svg>
 </div>
-<span class="settings-row-label">Music</span>
+<span class="settings-row-label" data-i18n="settings.music">Music</span>
 <input type="range" class="music-volume-slider" min="0" max="100" value="100" aria-label="Music volume" />
 </div>
 <div class="settings-row">
@@ -451,11 +464,24 @@ rel="stylesheet"
 <path d="M19.5 8.5v7"></path>
 </svg>
 </div>
-<span class="settings-row-label">Vibrations</span>
+<span class="settings-row-label" data-i18n="settings.vibrations">Vibrations</span>
 <label class="switch">
 <input type="checkbox" data-setting="vibration" aria-label="Vibrations" />
 <span class="switch-track"><span class="switch-thumb"></span></span>
 </label>
+</div>
+<div class="settings-row">
+<div class="settings-row-icon">
+<svg viewBox="0 0 24 24" class="svg-icon">
+<path d="M3 5h11M9 3v2M6 5c0 4.5 3 7.5 7 8.5M13 5c-.7 3.5-3 7-8 9"></path>
+<path d="m17 12 4 9M17 12l4 9M15.5 18h6"></path>
+</svg>
+</div>
+<span class="settings-row-label" data-i18n="settings.language">Language</span>
+<div class="lang-switch" data-lang-switch>
+<button type="button" class="lang-switch-btn" data-lang="en">EN</button>
+<button type="button" class="lang-switch-btn" data-lang="fr">FR</button>
+</div>
 </div>
 </div>
 <div class="settings-restart">
@@ -470,8 +496,8 @@ rel="stylesheet"
 </svg>
 </span>
 <span class="boost-copy">
-<strong class="boost-name">NEW GAME</strong>
-<span class="boost-desc">Start a brand new run</span>
+<strong class="boost-name" data-i18n="boost.newGame.name">NEW GAME</strong>
+<span class="boost-desc" data-i18n="boost.newGame.desc">Start a brand new run</span>
 </span>
 </button>
 </div>
@@ -491,7 +517,7 @@ rel="stylesheet"
 <span id="gameOverCoinCounterValue">0</span>
 <span class="coin-counter-plus" aria-hidden="true">+</span>
 </button>
-<div class="defeat-msg">NO MORE MOVES!</div>
+<div class="defeat-msg" data-i18n="gameOver.title">NO MORE MOVES!</div>
 <div class="countdown-wrap">
 <svg class="countdown-ring" viewBox="0 0 100 100">
 <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
@@ -499,7 +525,7 @@ rel="stylesheet"
 </svg>
 <div id="countdownValue" class="countdown-value">12</div>
 </div>
-<div class="second-chance-title">CHOOSE YOUR COMEBACK</div>
+<div class="second-chance-title" data-i18n="gameOver.subtitle">CHOOSE YOUR COMEBACK</div>
 <div class="boost-list">
 <button id="secondWindBtn" class="boost-card boost-primary">
 <span class="boost-shine" aria-hidden="true"></span>
@@ -509,10 +535,10 @@ rel="stylesheet"
 </svg>
 </span>
 <span class="boost-copy">
-<strong class="boost-name">SECOND WIND</strong>
-<span class="boost-desc">Clear the trouble blocks, keep your score</span>
+<strong class="boost-name" data-i18n="boost.secondWind.name">SECOND WIND</strong>
+<span class="boost-desc" data-i18n="boost.secondWind.desc">Clear the trouble blocks, keep your score</span>
 </span>
-<span class="boost-tag"><svg viewBox="0 0 24 24" class="boost-tag-icon"><path d="M8 5v14l11-7Z"></path></svg>AD</span>
+<span class="boost-tag"><svg viewBox="0 0 24 24" class="boost-tag-icon"><path d="M8 5v14l11-7Z"></path></svg><span data-i18n="boost.adTag">AD</span></span>
 </button>
 <button id="freshBoardBtn" class="boost-card boost-secondary">
 <span class="boost-icon">
@@ -521,8 +547,8 @@ rel="stylesheet"
 </svg>
 </span>
 <span class="boost-copy">
-<strong class="boost-name">FRESH START</strong>
-<span class="boost-desc">Wipe the board clean, keep your score</span>
+<strong class="boost-name" data-i18n="boost.freshStart.name">FRESH START</strong>
+<span class="boost-desc" data-i18n="boost.freshStart.desc">Wipe the board clean, keep your score</span>
 </span>
 <span class="boost-tag boost-tag-coins" id="freshBoardPriceTag">
 <svg viewBox="0 0 24 24" class="boost-tag-icon coin-icon">
@@ -540,8 +566,8 @@ rel="stylesheet"
 </svg>
 </span>
 <span class="boost-copy">
-<strong class="boost-name">NEW GAME</strong>
-<span class="boost-desc">Start a brand new run</span>
+<strong class="boost-name" data-i18n="boost.newGame.name">NEW GAME</strong>
+<span class="boost-desc" data-i18n="boost.newGame.desc">Start a brand new run</span>
 </span>
 </button>
 </div>
