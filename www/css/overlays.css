@@ -131,6 +131,35 @@
   letter-spacing: 0.2px;
 }
 .settings-row-slider { align-items: center; }
+/* Sélecteur de langue (demande explicite "langue de base anglais,
+   bascule vers le français dans les réglages") : contrôle à 2
+   positions plutôt qu'un interrupteur, cf. services/i18n.js. */
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--beige-off);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
+}
+.lang-switch-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  color: var(--muted);
+  transition: background-color 160ms ease, color 160ms ease, transform 90ms ease;
+}
+.lang-switch-btn:active { transform: scale(0.94); }
+.lang-switch-btn.is-active {
+  background-color: var(--theme-bg);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
 /* Interrupteur (sound / vibrations) */
 .switch { position: relative; display: inline-block; width: 46px; height: 27px; flex-shrink: 0; }
 .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
