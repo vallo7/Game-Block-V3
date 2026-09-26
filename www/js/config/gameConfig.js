@@ -161,6 +161,7 @@ export const STORAGE_KEYS = {
   trophies: "gameblock_trophies_v1",
   starTrophies: "gameblock_star_trophies_v1",
   quests: "gameblock_quests_v1",
+  language: "gameblock_language_v1",
   trophyStats: "gameblock_trophy_stats_v1",
   themeUnlocks: "gameblock_theme_unlocks_v1",
   adRewards: "gameblock_ad_rewards_v1",
@@ -247,54 +248,22 @@ export const MARKETPLACE = {
 // jour à l'autre. "watchAds" est volontairement exclue des quêtes
 // ad-skippable : elle est déjà 100% pub, lui donner un raccourci pub
 // n'aurait aucun sens.
+// ad-skippable : elle est déjà 100% pub, lui donner un raccourci pub
+// n'aurait aucun sens. Les libellés affichés (EN/FR) vivent désormais
+// dans services/i18n.js (clés "quest.<id>") plutôt qu'ici, pour ne
+// jamais avoir deux sources de texte à maintenir en parallèle.
 export const QUESTS = {
   RESET_INTERVAL_MS: 12 * 60 * 60 * 1000,
   SLOT_COUNT: 5,
   AD_SKIPPABLE_COUNT: 3,
   REMINDER_COOLDOWN_MS: 30 * 60 * 1000,
   TEMPLATES: [
-    {
-      id: "score",
-      track: "score",
-      targets: [5000, 10000, 20000],
-      reward: [10, 16, 24],
-      label: (n) => `Score ${n.toLocaleString()} points in a single run`
-    },
-    {
-      id: "lines",
-      track: "lines",
-      targets: [40, 80, 150],
-      reward: [10, 16, 24],
-      label: (n) => `Clear ${n} lines`
-    },
-    {
-      id: "perfectClear",
-      track: "perfectClear",
-      targets: [1, 2, 3],
-      reward: [12, 18, 26],
-      label: (n) => `Achieve ${n} Perfect Clear${n > 1 ? "s" : ""}`
-    },
-    {
-      id: "combo",
-      track: "combo",
-      targets: [6, 10, 15],
-      reward: [10, 16, 24],
-      label: (n) => `Reach a x${n} combo`
-    },
-    {
-      id: "games",
-      track: "games",
-      targets: [2, 3, 5],
-      reward: [8, 14, 20],
-      label: (n) => `Play ${n} games`
-    },
-    {
-      id: "watchAds",
-      track: "watchAd",
-      targets: [1, 2, 3],
-      reward: [8, 12, 18],
-      label: (n) => `Watch ${n} ad${n > 1 ? "s" : ""}`
-    }
+    { id: "score", track: "score", targets: [5000, 10000, 20000], reward: [10, 16, 24] },
+    { id: "lines", track: "lines", targets: [40, 80, 150], reward: [10, 16, 24] },
+    { id: "perfectClear", track: "perfectClear", targets: [1, 2, 3], reward: [12, 18, 26] },
+    { id: "combo", track: "combo", targets: [6, 10, 15], reward: [10, 16, 24] },
+    { id: "games", track: "games", targets: [2, 3, 5], reward: [8, 14, 20] },
+    { id: "watchAds", track: "watchAd", targets: [1, 2, 3], reward: [8, 12, 18] }
   ]
 };
 
