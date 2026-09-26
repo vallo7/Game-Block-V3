@@ -1,0 +1,253 @@
+/*
+  css/quest-page.css
+  --------------------------------------------------------------------
+  Écran "Quests" (roadmap Phase 9, demande explicite) — même tiroir que
+  Trophées/Marketplace (.drawer-screen, css/trophy-page.css), même
+  langage visuel "candy" pour la cohérence demandée explicitement
+  ("le design du menu suit celui des menus trophées et market place").
+
+  .quest-card reprend directement le gabarit de .trophy-card (icône +
+  copy + action à droite), avec une barre de progression en plus sous
+  le nom de la quête. .quest-reminder-toast est le pop-up de rappel de
+  l'accueil (ui/quests.js#maybeShowReminder) — même famille visuelle que
+  .ad-toast (css/tutorial.css) mais tapable, avec une icône.
+  --------------------------------------------------------------------
+*/
+#questCountdown {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.quest-scroll {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: 4px;
+  padding-bottom: 10px;
+}
+
+.quest-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, #fbf3e4, var(--beige-off));
+  color: var(--ink);
+  box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 3px #0a0c4d;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+.quest-summary-track {
+  width: 84px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(23, 35, 63, 0.14);
+  overflow: hidden;
+}
+.quest-summary-fill {
+  height: 100%;
+  border-radius: inherit;
+  background-image: linear-gradient(90deg, var(--green), var(--green-bright));
+  transition: width 400ms var(--spring);
+}
+
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.quest-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 18px;
+  background-color: #232a52;
+  background-image: linear-gradient(180deg, #2c335e, #1c223f);
+  box-shadow: var(--candy-inset), 0 0 0 3px #0a0c4d, 0 6px 14px rgba(0, 0, 0, 0.28);
+}
+.quest-card.completed {
+  background-image: linear-gradient(180deg, #ffe27a, var(--gold));
+  box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 3px #0a0c4d, 0 0 18px rgba(252, 196, 0, 0.4);
+}
+.quest-card.completed .quest-name,
+.quest-card.completed .quest-progress-label { color: #4a3b00; }
+.quest-card.claimed {
+  background-image: linear-gradient(180deg, #2c335e, #1c223f);
+  opacity: 0.72;
+}
+.quest-card.claimed .quest-name { color: rgba(255, 255, 255, 0.65); }
+
+.quest-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+.quest-icon .svg-icon { width: 21px; height: 21px; }
+.quest-card.completed .quest-icon {
+  color: #4a3b00;
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(10, 12, 77, 0.3);
+}
+
+.quest-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.quest-name {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.1px;
+  line-height: 1.25;
+}
+.quest-progress-track {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+.quest-card.completed .quest-progress-track { background: rgba(74, 59, 0, 0.22); }
+.quest-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background-image: linear-gradient(90deg, var(--blue-on), #7fe4ff);
+  transition: width 320ms var(--spring);
+}
+.quest-card.completed .quest-progress-fill { background-image: linear-gradient(90deg, #4a3b00, #6b5700); }
+.quest-progress-label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.quest-action {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.quest-reward-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  color: #ffe27a;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 0 0 2px rgba(10, 12, 77, 0.4);
+}
+.quest-reward-chip .coin-icon { width: 14px; height: 14px; }
+.quest-check {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: var(--green);
+  box-shadow: 0 0 0 2px rgba(10, 12, 77, 0.4);
+}
+.quest-check .svg-icon { width: 17px; height: 17px; }
+
+.quest-claim-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 900;
+  color: #4a3b00;
+  background-image: linear-gradient(180deg, #ffdb4d, var(--yellow));
+  box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 2px rgba(10, 12, 77, 0.4);
+  animation: boostPulse 1.4s infinite ease-in-out;
+  transition: transform 90ms ease;
+}
+.quest-claim-btn:active { transform: translateY(2px) scale(0.96); animation: none; }
+.quest-claim-btn .coin-icon { width: 14px; height: 14px; }
+
+.quest-skip-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  border-radius: 12px;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffffff;
+  background-image: linear-gradient(180deg, #7fe4ff, var(--blue-on));
+  box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 2px rgba(10, 12, 77, 0.4);
+  transition: transform 90ms ease;
+}
+.quest-skip-btn:active { transform: translateY(2px) scale(0.96); }
+.quest-skip-btn .svg-icon { width: 12px; height: 12px; fill: currentColor; stroke: none; }
+
+.quest-card.enter {
+  animation: questCardIn 420ms var(--spring) both;
+}
+@keyframes questCardIn {
+  0% { opacity: 0; transform: translateY(14px) scale(0.94); }
+  65% { opacity: 1; transform: translateY(-2px) scale(1.015); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- Pop-up de rappel de l'accueil (demande explicite "sans
+   être envahissant") ----------
+   Même famille visuelle que .ad-toast (css/tutorial.css) mais tapable
+   (ouvre directement le menu Quêtes) — icône + libellé, auto-disparaît
+   si ignoré. */
+.quest-reminder-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 14px);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #0a0c4d;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  padding: 11px 20px 11px 14px;
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), 0 0 0 3px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+.quest-reminder-toast .svg-icon {
+  width: 17px;
+  height: 17px;
+  color: #ffe27a;
+  flex-shrink: 0;
+}
+.quest-reminder-toast.show { opacity: 1; transform: translate(-50%, 0); }
