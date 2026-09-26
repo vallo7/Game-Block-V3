@@ -26,6 +26,7 @@
   --------------------------------------------------------------------
 */
 import { Theme } from "./services/theme.js";
+import { I18n } from "./services/i18n.js";
 import { Settings } from "./services/settings.js";
 import { Game } from "./core/game.js";
 import { Menu } from "./ui/menu.js";
@@ -53,6 +54,7 @@ export const App = {
 
   async init() {
     LoadingScreen.init();
+    I18n.init();
 
     Theme.init();
     Settings.load();
@@ -478,6 +480,24 @@ export const App = {
       slider.addEventListener("change", () => {
         GameAudio.playClick();
       });
+    });
+    // Sélecteur de langue (demande explicite) : les deux panneaux de
+    // réglages (accueil + pause) portent chacun leur propre
+    // .lang-switch — les deux sont maintenus synchronisés en reflétant
+    // I18n.lang partout à chaque tap, où qu'il ait eu lieu.
+    document.querySelectorAll(".lang-switch-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        GameAudio.playClick();
+        Haptics.vibrate(12);
+        I18n.setLanguage(btn.dataset.lang);
+        this.updateLangSwitchUI();
+      });
+    });
+    this.updateLangSwitchUI();
+  },
+  updateLangSwitchUI() {
+    document.querySelectorAll(".lang-switch-btn").forEach(btn => {
+      btn.classList.toggle("is-active", btn.dataset.lang === I18n.lang);
     });
   },
   showMenu() {
