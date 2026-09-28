@@ -37,15 +37,17 @@ rel="stylesheet"
 <div id="loadingScreen" class="loading-screen">
 <div class="loading-content replay">
 <img src="img/logo-gameblock.png" alt="Game Block" class="loading-logo" />
-<div class="loading-blockbar" id="loadingBlockbar" aria-hidden="true">
-<span class="loading-blockbar-cell"></span>
-<span class="loading-blockbar-cell"></span>
-<span class="loading-blockbar-cell"></span>
-<span class="loading-blockbar-cell"></span>
-<span class="loading-blockbar-cell"></span>
-<span class="loading-blockbar-cell"></span>
-<span class="loading-blockbar-cell"></span>
-<span class="loading-blockbar-cell"></span>
+<!-- Barre de chargement classique (7e -> 8e passe, demande explicite) :
+     piste + remplissage arc-en-ciel animé + étincelle qui suit la pointe
+     + pourcentage. Pilotée par ui/loading.js#setProgress. -->
+<div class="loading-bar-wrap" aria-hidden="true">
+<div class="loading-bar-track" id="loadingBarTrack">
+<div class="loading-bar-fill" id="loadingBarFill">
+<span class="loading-bar-shine"></span>
+</div>
+<span class="loading-bar-spark" id="loadingBarSpark"></span>
+</div>
+<div class="loading-bar-percent" id="loadingBarPercent">0%</div>
 </div>
 </div>
 </div>
@@ -388,8 +390,14 @@ rel="stylesheet"
 </svg>
 </button>
 <h2 class="theme-page-title" data-i18n="quests.title">Quests</h2>
-<span id="questCountdown">Resets in --</span>
+<span aria-hidden="true"></span>
 </div>
+<!-- Statut du compte à rebours de réinitialisation (8e passe) : pastille
+     dédiée sous l'en-tête plutôt que dans sa 3e colonne de 44px, trop
+     étroite pour un texte de cette longueur. Rempli par
+     ui/quests.js#updateCountdown (compte à rebours de 12h une fois les 5
+     quêtes complétées, sinon invitation à les compléter). -->
+<div id="questCountdown" class="quest-countdown"></div>
 <div class="quest-scroll" id="questContent"></div>
 </section>
 <!-- MARKETPLACE -->
