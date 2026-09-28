@@ -218,14 +218,16 @@ export const COINS = {
 // fichier) — inchangé par cette passe, qui ne touche qu'à ce qui est
 // gratuit/gagnable en jeu.
 export const MARKETPLACE = {
-  // Prix quintuplés (4e passe, demande explicite). Halloween rejoint
-  // Inferno comme thème payant en Coins — il n'était pas dans
-  // THEME_PRICES avant (débloqué par condition) ; son prix ici est neuf,
-  // positionné sous celui d'Inferno. Ice prend sa place comme thème à
-  // condition (voir services/visualtheme.js#UNLOCKS et
-  // core/game-rules.js).
+  // Prix uniforme (demande explicite : "tous les thèmes en vente coûtent
+  // 2500 coins sauf précision") : Halloween et Inferno coûtent chacun
+  // 2500 Coins. DEFAULT_THEME_PRICE est la valeur de référence pour tout
+  // futur thème payant — à recopier dans THEME_PRICES à l'ajout d'un
+  // thème, sauf prix différent demandé explicitement. Ice reste un thème
+  // à condition (combo x8, cf. services/visualtheme.js#UNLOCKS et
+  // core/game-rules.js), donc n'a pas de prix.
+  DEFAULT_THEME_PRICE: 2500,
   THEME_PRICES: {
-    halloween: 1800,
+    halloween: 2500,
     hell: 2500
   },
   // "Remove Ads" (nouveau) : point de prix standard pour ce type d'achat
