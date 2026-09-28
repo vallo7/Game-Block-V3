@@ -127,12 +127,23 @@ export const Game = {
     // Grille : un asset par environnement (roadmap §3.2). La liste se
     // déduit du registre Environments, donc un futur environnement
     // ajouté là-bas est automatiquement précargé ici sans toucher à ce
-    // fichier.
+    // fichier. Tous les environnements partagent désormais la même
+    // grille (services/environment.js#SHARED_GRID_ASSET) : les Image
+    // sont donc dédupliquées par URL — une seule requête, un seul
+    // bitmap décodé en mémoire, réutilisé par chaque id d'environnement
+    // (core/game-render.js#drawBoard lit gridImages[env.id] tel quel).
     this.gridImages = {};
+    const gridImagesBySrc = {};
     Object.values(Environments).forEach(env => {
-      const img = new Image();
-      img.src = env.assets.grid;
-      this.gridImages[env.id] = img;
+      const src = env.assets.grid;
+
+      if (!gridImagesBySrc[src]) {
+        const img = new Image();
+        img.src = src;
+        gridImagesBySrc[src] = img;
+      }
+
+      this.gridImages[env.id] = gridImagesBySrc[src];
     });
 
     this.best = Storage.getBest();
@@ -309,6 +320,11 @@ export const Game = {
     // partie, cf. core/game-rules.js).
     this.bestAtRunStart = this.best;
     this.perfectClearsThisRun = 0;
+
+    // Quêtes (8e passe) : marque le début de cette partie pour que les
+    // quêtes score/combo n'acceptent que des parties démarrées après la
+    // participation du joueur (services/quests.js#markRunStart).
+    Quests.markRunStart();
 
     if (typeof VisualTheme !== "undefined" && VisualTheme.current) {
       Achievements.checkThemePlayed(VisualTheme.current.id);
