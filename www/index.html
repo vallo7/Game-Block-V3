@@ -24,6 +24,8 @@ rel="stylesheet"
 <link rel="stylesheet" href="css/quest-page.css" />
 <link rel="stylesheet" href="css/marketplace-page.css" />
 <link rel="stylesheet" href="css/tutorial.css" />
+<link rel="stylesheet" href="css/wheel.css" />
+<link rel="stylesheet" href="css/rewards-fx.css" />
 <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body>
@@ -511,8 +513,9 @@ rel="stylesheet"
 </div>
 </div>
 </div>
-<!-- GAME OVER / SECOND CHANCE (roadmap Phase 8) : 3 cartes de boost au
-     lieu du choix binaire Continue/Restart. Le countdown garde son rôle
+<!-- GAME OVER / SECOND CHANCE (roadmap Phase 8, V2) : 3 cartes de boost au
+     lieu du choix binaire Continue/Restart. SECOND WIND = 1 pub, FRESH
+     START = 2 pubs (plus aucun coût en Coins), NEW GAME = gratuit. Le countdown garde son rôle
      de filet de sécurité (action par défaut = NEW GAME, cf.
      core/game-flow.js#startGameOver). -->
 <div id="gameOverOverlay" class="overlay hidden" aria-hidden="true">
@@ -549,6 +552,7 @@ rel="stylesheet"
 <span class="boost-tag"><svg viewBox="0 0 24 24" class="boost-tag-icon"><path d="M8 5v14l11-7Z"></path></svg><span data-i18n="boost.adTag">AD</span></span>
 </button>
 <button id="freshBoardBtn" class="boost-card boost-secondary">
+<span class="boost-shine" aria-hidden="true"></span>
 <span class="boost-icon">
 <svg viewBox="0 0 24 24" class="svg-icon">
 <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2 2M15.7 15.7l2 2M17.7 6.3l-2 2M8.3 15.7l-2 2"></path>
@@ -558,12 +562,8 @@ rel="stylesheet"
 <strong class="boost-name" data-i18n="boost.freshStart.name">FRESH START</strong>
 <span class="boost-desc" data-i18n="boost.freshStart.desc">Wipe the board clean, keep your score</span>
 </span>
-<span class="boost-tag boost-tag-coins" id="freshBoardPriceTag">
-<svg viewBox="0 0 24 24" class="boost-tag-icon coin-icon">
-<circle cx="12" cy="12" r="9"></circle>
-<path d="M12 7.5 13.2 10.4 16.5 10.7 14 12.9 14.7 16.2 12 14.4 9.3 16.2 10 12.9 7.5 10.7 10.8 10.4Z" class="coin-star"></path>
-</svg>
-<span id="freshBoardPriceValue">25</span>
+<span class="boost-tag boost-tag-ads">
+<svg viewBox="0 0 24 24" class="boost-tag-icon"><path d="M8 5v14l11-7Z"></path></svg><svg viewBox="0 0 24 24" class="boost-tag-icon boost-tag-icon-2"><path d="M8 5v14l11-7Z"></path></svg><span data-i18n="boost.adTag2">2 ADS</span>
 </span>
 </button>
 <button id="newGameBtn" class="boost-card boost-tertiary">
