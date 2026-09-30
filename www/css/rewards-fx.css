@@ -1,0 +1,107 @@
+/*
+  css/rewards-fx.css
+  --------------------------------------------------------------------
+  Effets "fun" partagés par TOUS les boutons qui invitent le joueur à
+  regarder une pub ou à toucher une récompense (V2 — monétisation par
+  la publicité : l'objectif est de donner envie, jamais d'imposer) :
+  reflet diagonal qui balaie, halo doré qui pulse, rebond d'appel à
+  l'action (@keyframes ctaBounce, css/menu.css) et pastille "+" des
+  compteurs de Coins qui bat comme un petit coeur.
+
+  Les boutons concernés sont ciblés ici par leur classe existante plutôt
+  que par une classe utilitaire à ajouter dans chaque markup : réclamer
+  une quête (.quest-claim-btn), regarder une pub d'une quête
+  (.quest-skip-btn), réclamer un trophée (.trophy-reveal-claim-btn),
+  offres/actualisation de la boutique (.market-offer-btn,
+  .market-refresh-btn), roue (voir css/wheel.css), Second Wind / Fresh
+  Start du panneau de défaite (css/overlays.css). Chargé APRÈS les
+  fichiers d'écran, avant responsive.css.
+
+  Tout est composité (transform/opacity/left d'un pseudo-élément) et
+  coupé pour les joueurs qui demandent moins d'animations
+  (prefers-reduced-motion).
+  --------------------------------------------------------------------
+*/
+@keyframes fxShine {
+  0% { left: -70%; }
+  55%, 100% { left: 140%; }
+}
+
+.quest-claim-btn,
+.quest-skip-btn,
+.quest-join-btn,
+.market-offer-btn,
+.market-refresh-btn {
+  position: relative;
+  overflow: hidden;
+}
+.quest-claim-btn::after,
+.quest-skip-btn::after,
+.trophy-reveal-claim-btn::after,
+.market-offer-btn::after,
+.market-refresh-btn.is-ad::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 36%;
+  height: 100%;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-18deg);
+  animation: fxShine 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+/* Décale les reflets d'une carte à l'autre pour qu'ils ne défilent
+   jamais tous en même temps (rendu plus vivant). */
+.quest-list .quest-card:nth-child(2n) .quest-claim-btn::after,
+.quest-list .quest-card:nth-child(2n) .quest-skip-btn::after,
+.market-offer-list .market-offer-card:nth-child(2) .market-offer-btn::after { animation-delay: 0.7s; }
+.quest-list .quest-card:nth-child(3n) .quest-claim-btn::after,
+.quest-list .quest-card:nth-child(3n) .quest-skip-btn::after,
+.market-offer-list .market-offer-card:nth-child(3) .market-offer-btn::after { animation-delay: 1.4s; }
+
+/* Quête "réclamer" : en plus de la pulsation existante (boostPulse), un
+   petit frétillement de la pièce à l'intérieur. */
+.quest-claim-btn .coin-icon { animation: fxCoinWiggle 2.2s ease-in-out infinite; }
+@keyframes fxCoinWiggle {
+  0%, 60%, 100% { transform: rotate(0deg) scale(1); }
+  70% { transform: rotate(-16deg) scale(1.2); }
+  80% { transform: rotate(14deg) scale(1.2); }
+  90% { transform: rotate(-6deg) scale(1.08); }
+}
+
+/* Bouton "Join" : appel doux (pas une récompense en soi, mais l'entrée
+   vers elle) — simple halo vert. */
+.quest-join-btn { animation: fxJoinGlow 2s ease-in-out infinite; }
+.quest-join-btn:active { animation: none; }
+@keyframes fxJoinGlow {
+  0%, 100% { box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 2px rgba(10, 12, 77, 0.4), 0 0 0 rgba(110, 199, 5, 0); }
+  50% { box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 2px rgba(10, 12, 77, 0.4), 0 0 14px rgba(110, 199, 5, 0.75); }
+}
+
+/* Pastille "+" des compteurs de Coins (accueil, jeu, panneau de
+   défaite) : bat doucement pour rappeler qu'on peut gagner des Coins. */
+.coin-counter-plus { animation: fxPlusBeat 2.4s ease-in-out infinite; }
+@keyframes fxPlusBeat {
+  0%, 55%, 100% { transform: scale(1); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4), 0 0 0 rgba(139, 238, 10, 0); }
+  68% { transform: scale(1.28); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4), 0 0 12px rgba(139, 238, 10, 0.95); }
+  82% { transform: scale(0.95); }
+}
+
+/* Réclamation d'un trophée : reflet sur le bouton doré (le bouton porte
+   déjà overflow:hidden et boostPulse, css/trophy-page.css). */
+.trophy-reveal-claim-btn .coin-icon { animation: fxCoinWiggle 2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .quest-claim-btn::after,
+  .quest-skip-btn::after,
+  .trophy-reveal-claim-btn::after,
+  .market-offer-btn::after,
+  .market-refresh-btn::after,
+  .wheel-spin-btn::after,
+  .wheel-result-btn::after { display: none; }
+  .coin-counter-plus,
+  .quest-join-btn,
+  .quest-claim-btn .coin-icon,
+  .trophy-reveal-claim-btn .coin-icon { animation: none; }
+}
