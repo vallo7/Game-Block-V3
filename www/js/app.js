@@ -36,7 +36,7 @@ import { RateUs } from "./services/rateus.js";
 import { VisualTheme } from "./services/visualtheme.js";
 import { GameAudio } from "./services/audio.js";
 import { Haptics } from "./services/haptics.js";
-import { ADS, COINS } from "./config/gameConfig.js";
+import { ADS } from "./config/gameConfig.js";
 import { LoadingScreen } from "./ui/loading.js";
 import { GameEntranceFX } from "./ui/game-entrance.js";
 import { MenuEntranceFX } from "./ui/menu-entrance.js";
@@ -47,6 +47,7 @@ import { Trophies } from "./ui/trophies.js";
 import { Marketplace } from "./ui/marketplace.js";
 import { Quests } from "./services/quests.js";
 import { QuestsUI } from "./ui/quests.js";
+import { LuckyWheel } from "./ui/wheel.js";
 
 export const App = {
   lastBackPress: 0,
@@ -75,7 +76,6 @@ export const App = {
     this.bindButtonPop();
     this.bindVisibility();
     this.bindEconomyUI();
-    this.updateFreshBoardPrice();
 
     await this.bootLoad();
 
@@ -173,11 +173,19 @@ export const App = {
   bindVisibility() {
     document.addEventListener("visibilitychange", () => {
       GameAudio.handleVisibility();
+
+      // Partie en cours conservée dès que l'app quitte le premier plan
+      // (core/game-persist.js).
+      if (document.hidden) Game.persistRunNow();
     });
+
+    window.addEventListener("pagehide", () => Game.persistRunNow());
+
     if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App) {
       Capacitor.Plugins.App.addListener("appStateChange", (state) => {
         if (state && typeof state.isActive === "boolean") {
           if (!state.isActive) {
+            Game.persistRunNow();
             GameAudio.stopMusic();
             if (GameAudio.ctx && GameAudio.ctx.state === "running") {
               GameAudio.ctx.suspend();
@@ -210,6 +218,10 @@ export const App = {
       Haptics.vibrate(10);
       return;
     }
+    // Roue de la chance (pop-up ou annonce de gain) : le retour la gère
+    // elle-même (passer, refuser une pub, encaisser) au lieu de laisser
+    // l'écran du dessous réagir.
+    if (LuckyWheel.handleBack()) return;
     const settingsOverlay = document.getElementById("settingsOverlay");
     const gameOverOverlay = document.getElementById("gameOverOverlay");
     const gameScreen = document.getElementById("gameScreen");
@@ -319,7 +331,6 @@ export const App = {
 
     Economy.onChange((balance) => {
       this.updateCoinCounter(balance);
-      this.updateFreshBoardPrice();
     });
   },
 
@@ -335,20 +346,6 @@ export const App = {
     });
   },
 
-  // Prix de FRESH START (roadmap Phase 5) : affiché une seule fois à
-  // l'init depuis la config (source de vérité unique), puis l'état
-  // "insuffisant" de la carte est rafraîchi à chaque variation du
-  // solde — sans effet visible tant que le panneau Game Over n'est pas
-  // ouvert, mais toujours à jour au moment où il s'ouvre.
-  updateFreshBoardPrice() {
-    const valueEl = document.getElementById("freshBoardPriceValue");
-    if (valueEl) valueEl.textContent = COINS.FRESH_START_COST;
-
-    const card = document.getElementById("freshBoardBtn");
-    if (card) {
-      card.classList.toggle("is-unaffordable", !Economy.canAfford(COINS.FRESH_START_COST));
-    }
-  },
   celebrateEl(el) {
     el.classList.remove("celebrate");
     void el.offsetWidth;
