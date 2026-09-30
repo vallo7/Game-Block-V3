@@ -73,6 +73,12 @@ export const GAME_OVER = {
 // Les publicités RÉCOMPENSÉES (rewarded, Second Chance) ne sont PAS
 // soumises au cooldown : toujours déclenchées par un choix explicite du
 // joueur pour un bénéfice clair, jamais une interruption.
+// Monétisation V2 : plus aucun achat intégré, tout repose sur la
+// publicité. Le joueur est INVITÉ à en regarder (boutique d'offres, roue
+// de la chance, Second Wind, Fresh Start, quêtes) plutôt que forcé : les
+// pubs récompensées ci-dessous ne sont jamais soumises au cooldown des
+// interstitiels. SECOND_WIND_ADS / FRESH_START_ADS = nombre de pubs
+// récompensées enchaînées pour débloquer chaque carte du panneau de défaite.
 export const ADS = {
   // IDs de démonstration officiels Google, à remplacer avant publication
   // (cf. roadmap §6, Phase 6 "Chantiers de publication").
@@ -87,7 +93,11 @@ export const ADS = {
   NEW_GAME_CHANCE: 1,             // bouton NEW GAME du panneau Second Chance : quasi systématique
   // Durée plancher entre deux interstitiels, tous points d'entrée
   // confondus (ne s'applique jamais aux pubs récompensées).
-  MIN_INTERSTITIAL_INTERVAL_MS: 90000
+  MIN_INTERSTITIAL_INTERVAL_MS: 90000,
+  SECOND_WIND_ADS: 1,
+  FRESH_START_ADS: 2,
+  // Pause entre deux pubs d'une même séquence (toast de progression).
+  SEQUENCE_PAUSE_MS: 1100
 };
 
 // ---------- Praise (Phase 11 — extension 5 → 8 paliers) ----------
@@ -164,7 +174,9 @@ export const STORAGE_KEYS = {
   language: "gameblock_language_v1",
   trophyStats: "gameblock_trophy_stats_v1",
   themeUnlocks: "gameblock_theme_unlocks_v1",
-  adRewards: "gameblock_ad_rewards_v1",
+  wheel: "gameblock_wheel_v1",
+  run: "gameblock_run_v1",
+  quality: "gameblock_quality_v1",
   legacy: {
     settings: "inkblast_settings_v2",
     best: "inkblast_best_v2",
@@ -179,83 +191,133 @@ export const SETTINGS_DEFAULTS = {
   sound: true,
   music: true,
   musicVolume: 100,
-  vibration: true,
-  adsBlocked: false
+  vibration: true
 };
 
-// ---------- Coins (économie, roadmap Phase 5) ----------
-// Économie durcie sur demande explicite (2e passe) : Perfect Clear reste
-// la SEULE source répétable en jeu, mais rapporte très peu — l'essentiel
-// de la progression "gratuite" vient désormais des trophées (one-shot,
-// cf. services/achievements.js, seuils eux-mêmes relevés) et de la
-// nouvelle section "Watch Ads for Coins" de la Marketplace (limitée par
-// jour, cf. AD_REWARD/AD_DAILY_LIMIT ci-dessous — sans quoi elle
-// annulerait complètement la rareté voulue). Objectif inchangé : que la
-// recharge en argent réel garde un vrai intérêt plutôt que d'être
-// redondante avec un farming facile.
-// Économie resserrée (4e passe, demande explicite "triple la rareté
-// d'obtention des coins, sauf watch ads") : Perfect Clear reste la seule
-// source répétable en jeu (cf. note plus haut) — son gain est divisé par 3.
-// AD_REWARD (Watch Ads) reste volontairement inchangé, explicitement
-// exclu de cette passe.
+// ---------- Coins (économie, roadmap Phase 5, révisée en V2) ----------
+// Monétisation V2 : plus d'achat intégré, les Coins se gagnent en jouant
+// (Perfect Clear, seule source répétable en jeu, volontairement rare),
+// via les trophées et quêtes (one-shot / quotidiennes), et surtout en
+// REGARDANT DES PUBS de plein gré : offres de la boutique
+// (MARKETPLACE.AD_OFFERS) et roue de la chance (WHEEL). FRESH START ne
+// coûte plus de Coins mais FRESH_START_ADS publicités (cf. ADS).
 export const COINS = {
-  PERFECT_CLEAR: 1,
-  FRESH_START_COST: 25,
-  AD_REWARD: 15,
-  AD_DAILY_LIMIT: 5
+  PERFECT_CLEAR: 1
 };
 
 // ---------- Marketplace ----------
-// FRESH_START_COST vit dans COINS (consommé côté jeu, pas Marketplace).
 // THEME_PRICES : uniquement les thèmes débloqués par achat direct en
-// Coins (filière 3, roadmap §3.3) — Ice se débloque désormais par
-// condition (filière 2, combo x8), pas par un prix ici (voir
-// services/visualtheme.js#UNLOCKS et core/game-rules.js). Prix
-// d'Inferno relevé (2e passe, demande explicite "thèmes plus chers") —
-// cohérent avec une économie de Coins désormais beaucoup plus rare.
-// COIN_PACKS : pas de vraie transaction IAP branchée pour l'instant
-// (voir la note détaillée plus haut dans la version précédente de ce
-// fichier) — inchangé par cette passe, qui ne touche qu'à ce qui est
-// gratuit/gagnable en jeu.
+// Coins (filière 3, roadmap §3.3) — Ice se débloque par condition
+// (filière 2, combo x8), pas par un prix ici (voir
+// services/visualtheme.js#UNLOCKS et core/game-rules.js).
+//
+// AD_OFFERS (section "Recharge Coins") : 10 offres "regarde N pubs, gagne
+// X Coins", plus ou moins généreuses (de 15 à 60 Coins par pub). La
+// boutique en propose OFFER_SLOTS à la fois, tirées au hasard
+// (services/adoffers.js) — au moins une offre courte (<= SHORT_OFFER_MAX_ADS
+// pubs) est toujours proposée pour ne jamais enfermer le joueur dans des
+// offres longues. Une fois toutes les offres affichées récupérées, la
+// liste se renouvelle seule. FREE_REFRESHES = nombre d'actualisations
+// gratuites par session (remis à zéro à chaque démarrage de l'app) ; les
+// suivantes coûtent 1 pub.
 export const MARKETPLACE = {
-  // Prix uniforme (demande explicite : "tous les thèmes en vente coûtent
-  // 2500 coins sauf précision") : Halloween et Inferno coûtent chacun
-  // 2500 Coins. DEFAULT_THEME_PRICE est la valeur de référence pour tout
-  // futur thème payant — à recopier dans THEME_PRICES à l'ajout d'un
-  // thème, sauf prix différent demandé explicitement. Ice reste un thème
-  // à condition (combo x8, cf. services/visualtheme.js#UNLOCKS et
-  // core/game-rules.js), donc n'a pas de prix.
   DEFAULT_THEME_PRICE: 2500,
   THEME_PRICES: {
     halloween: 2500,
     hell: 2500
   },
-  // "Remove Ads" (nouveau) : point de prix standard pour ce type d'achat
-  // unique dans les jeux mobiles casual à succès.
-  REMOVE_ADS_PRICE: "$3.99",
-  COIN_PACKS: [
-    { id: "pack-handful", coins: 100, bonus: 0, priceLabel: "$0.99" },
-    { id: "pack-pouch", coins: 550, bonus: 10, priceLabel: "$4.99", badge: null },
-    { id: "pack-chest", coins: 1200, bonus: 20, priceLabel: "$9.99", badge: "BEST VALUE" },
-    { id: "pack-vault", coins: 3000, bonus: 35, priceLabel: "$19.99", badge: "MOST COINS" }
+  OFFER_SLOTS: 3,
+  FREE_REFRESHES: 1,
+  SHORT_OFFER_MAX_ADS: 2,
+  // Seuils de "Coins par pub" pour la teinte des cartes d'offre
+  // (services/adoffers.js#getTier) : < 20 base, < 30 vert, < 45 or, sinon
+  // violet + pastille "meilleure offre".
+  TIER_THRESHOLDS: [20, 30, 45],
+  AD_OFFERS: [
+    { id: "offer-1", ads: 1, coins: 15 },
+    { id: "offer-2", ads: 1, coins: 25 },
+    { id: "offer-3", ads: 2, coins: 35 },
+    { id: "offer-4", ads: 2, coins: 60 },
+    { id: "offer-5", ads: 3, coins: 60 },
+    { id: "offer-6", ads: 3, coins: 120 },
+    { id: "offer-7", ads: 4, coins: 100 },
+    { id: "offer-8", ads: 4, coins: 200 },
+    { id: "offer-9", ads: 5, coins: 175 },
+    { id: "offer-10", ads: 5, coins: 300 }
   ]
 };
 
+// ---------- Roue de la chance (V2) ----------
+// Affichée quand le joueur gagne des Coins (réclamation de trophée ou de
+// quête, Perfect Clear en partie — avant le panneau de défaite) et en
+// permanence sous les offres de la boutique. Les Coins de base sont déjà
+// crédités : la roue offre un BONUS par-dessus. Chaque case est gagnante
+// (aucun "perdu"), les cases pub sont simplement plus généreuses et
+// refusables sans conséquence.
+//
+// LAYOUT : 8 cases de 45°, une case = 1/8 de chances. Les cases pub sont
+// dupliquées (2 x ad1, 2 x ad2) => 50 % de chances de tomber sur une pub,
+// les 4 cases gratuites (x2, x3, coinsSmall, coinsBig) se partagent le
+// reste. L'ordre alterne pub/gratuit pour l'équilibre visuel.
+//
+// Bonus d'une case = max(min, ceil(base x factor)), plafonné à MAX_BONUS,
+// où base = max(récompense gagnée, MIN_BASE) — le plancher évite qu'un
+// Perfect Clear à 1 Coin donne des multiplicateurs ridicules.
+//   x2 -> +1 x base (total x2)    x3 -> +2 x base (total x3)
+//   ad1 (1 pub) -> 3 x base       ad2 (2 pubs) -> 5 x base
+// PITY : si le joueur vient de refuser une case pub, le tirage suivant
+// n'en propose aucune (jamais deux "pubs refusées" d'affilée).
+export const WHEEL = {
+  LAYOUT: ["ad1", "coinsSmall", "ad2", "x2", "ad1", "coinsBig", "ad2", "x3"],
+  MIN_BASE: 10,
+  MAX_BONUS: 2500,
+  PRIZES: {
+    coinsSmall: { factor: 0.5, min: 10 },
+    coinsBig: { factor: 1.5, min: 25 },
+    x2: { factor: 1 },
+    x3: { factor: 2 },
+    ad1: { factor: 3, min: 40, ads: 1 },
+    ad2: { factor: 5, min: 90, ads: 2 }
+  },
+  PITY_AFTER_DECLINED_AD: true,
+  WINDUP_MS: 260,
+  SPIN_DURATION_MS: 5200,
+  // Roue de la boutique : récompense de référence fixe, 1 tour gratuit
+  // toutes les SHOP_FREE_COOLDOWN_MS, les suivants coûtent 1 pub.
+  SHOP_BASE: 20,
+  SHOP_FREE_COOLDOWN_MS: 4 * 60 * 60 * 1000
+};
+
+// ---------- Performance (gouverneur de qualité adaptatif) ----------
+// core/game-state.js mesure le temps de frame réel en jeu ; si la
+// moyenne dépasse SLOW_FRAME_MS sur une fenêtre de WINDOW_MS, le niveau
+// de qualité descend d'un cran (max MAX_LEVEL) : niveau 1 = plus de
+// lumières ambiantes/pointeur ni de "respiration" des blocs ; niveau 2 =
+// en plus, résolution du canvas plafonnée à LOW_DPR. Ne remonte jamais
+// tout seul dans une session (évite l'effet yo-yo). Un appareil puissant
+// reste donc toujours au niveau 0 (rendu complet, aucune dégradation).
+export const PERFORMANCE = {
+  SLOW_FRAME_MS: 24,
+  WINDOW_MS: 2000,
+  SETTLE_MS: 4000,
+  MAX_LEVEL: 2,
+  LOW_DPR: 1.25
+};
+
 // ---------- Quêtes quotidiennes (roadmap Phase 9, demande explicite) ----------
-// 5 quêtes tirées au sort à chaque cycle de QUESTS.RESET_INTERVAL_MS (12h),
-// dont AD_SKIPPABLE_COUNT peuvent être complétées instantanément via une
-// pub récompensée en plus de la voie normale (jouer). Chaque modèle porte
+// 5 quêtes tirées au sort ; dès que RESET_TRIGGER_COUNT (3) d'entre elles
+// sont complétées, un compte à rebours de RESET_INTERVAL_MS (12h) démarre
+// et la liste entière est renouvelée à son échéance. AD_SKIPPABLE_COUNT
+// d'entre elles peuvent être complétées instantanément via une pub
+// récompensée en plus de la voie normale (jouer). Chaque modèle porte
 // 3 variantes de difficulté/récompense (targets[i] <-> reward[i]),
-// tirées au hasard à la génération du cycle pour un peu de variété d'un
-// jour à l'autre. "watchAds" est volontairement exclue des quêtes
-// ad-skippable : elle est déjà 100% pub, lui donner un raccourci pub
-// n'aurait aucun sens.
-// ad-skippable : elle est déjà 100% pub, lui donner un raccourci pub
-// n'aurait aucun sens. Les libellés affichés (EN/FR) vivent désormais
-// dans services/i18n.js (clés "quest.<id>") plutôt qu'ici, pour ne
-// jamais avoir deux sources de texte à maintenir en parallèle.
+// tirées au hasard à la génération du cycle. "watchAds" est exclue des
+// quêtes ad-skippable (déjà 100% pub) mais possède son propre bouton
+// "Watch Ad" dans ui/quests.js. Les libellés affichés (EN/FR) vivent
+// dans services/i18n.js (clés "quest.<id>").
 export const QUESTS = {
   RESET_INTERVAL_MS: 12 * 60 * 60 * 1000,
+  RESET_TRIGGER_COUNT: 3,
   SLOT_COUNT: 5,
   AD_SKIPPABLE_COUNT: 3,
   REMINDER_COOLDOWN_MS: 30 * 60 * 1000,
