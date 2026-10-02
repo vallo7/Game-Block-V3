@@ -1,0 +1,603 @@
+/*
+  css/wheel.css
+  --------------------------------------------------------------------
+  Roue de la chance (V2, ui/wheel.js) : pop-up plein écran très mis en
+  avant, roue SVG (disque tournant + jante/ampoules fixes + aiguille),
+  annonce de gain / invitation à regarder des pubs, et carte de la
+  boutique. Direction artistique du jeu respectée : contours marine
+  #0a0c4d, dégradés "candy", ressort --spring, Baloo 2 en graisse 900,
+  couleurs de la palette des blocs.
+
+  Effets en boucle du pop-up (demande explicite "très mis en avant") :
+  rayons dorés qui tournent lentement, halo qui pulse derrière la roue,
+  ampoules de la jante qui clignotent (plus vite pendant le tour),
+  étincelles qui montent, titre à dégradé animé, bouton SPIN qui rebondit
+  avec reflet, aiguille qui sursaute à chaque case. Tout est composité
+  (transform/opacity) sauf le clignotement des ampoules (fill de 16
+  petits cercles), pour rester fluide sur WebView Android.
+
+  z-index : 240 (pop-up) < 246 (annonce) < 248 (confettis) < 250 (éclats
+  de pièces) ; .ad-toast est relevé à 260 (css/tutorial.css) pour que le
+  message hors-ligne reste visible par-dessus.
+  --------------------------------------------------------------------
+*/
+:root {
+  --wheel-size: min(80vw, 330px, 40svh);
+}
+
+/* ---------- Pop-up ---------- */
+.wheel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding:
+    calc(10px + env(safe-area-inset-top))
+    calc(16px + env(safe-area-inset-right))
+    calc(10px + env(safe-area-inset-bottom))
+    calc(16px + env(safe-area-inset-left));
+  background: radial-gradient(circle at 50% 44%, #2a1c7a 0%, #120c45 52%, #050619 100%);
+  /* Pas de fondu (demande explicite) : le pop-up GLISSE depuis le bas,
+     comme un tiroir, et repart par le bas. */
+  transform: translateY(100%);
+  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.wheel-overlay.show { transform: translateY(0); }
+.wheel-overlay.out {
+  transform: translateY(100%);
+  transition-duration: 320ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.wheel-rays {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 150vmax;
+  height: 150vmax;
+  margin: -75vmax 0 0 -75vmax;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 214, 90, 0.26) 0deg 7deg,
+    rgba(255, 214, 90, 0) 7deg 20deg
+  );
+  animation: wheelRaysSpin 30s linear infinite;
+  pointer-events: none;
+}
+.wheel-overlay.is-spinning .wheel-rays { animation-duration: 9s; }
+@keyframes wheelRaysSpin {
+  to { transform: rotate(360deg); }
+}
+/* Vignette fixe par-dessus les rayons : ils s'estompent vers les bords
+   sans passer par un masque sur un calque qui tourne (moins coûteux). */
+.wheel-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 44%, rgba(5, 6, 25, 0) 0%, rgba(5, 6, 25, 0.35) 45%, rgba(5, 6, 25, 0.92) 92%);
+  pointer-events: none;
+}
+
+.wheel-sparkles { position: absolute; inset: 0; pointer-events: none; }
+.wheel-sparkle {
+  position: absolute;
+  left: var(--x);
+  bottom: -24px;
+  width: var(--s);
+  height: var(--s);
+  background: #ffe27a;
+  box-shadow: 0 0 10px rgba(255, 226, 122, 0.9);
+  clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%);
+  opacity: 0;
+  animation: wheelSparkleRise var(--d) linear var(--delay) infinite;
+}
+@keyframes wheelSparkleRise {
+  0% { opacity: 0; transform: translateY(0) rotate(0deg) scale(0.6); }
+  12% { opacity: 1; }
+  85% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-112vh) rotate(300deg) scale(1.1); }
+}
+
+.wheel-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  transform: scale(0.6) translateY(34px);
+}
+.wheel-overlay.show .wheel-card {
+  animation: wheelCardIn 640ms var(--spring) 60ms forwards;
+}
+@keyframes wheelCardIn {
+  0% { transform: scale(0.6) translateY(34px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+.wheel-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  background-image: linear-gradient(90deg, #ff2e63, #ffb100, #22e6c8, #7c5cff, #ff2e63);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.45);
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.35));
+  animation: legendaryShimmer 2.4s linear infinite, wheelTitleBob 2.2s ease-in-out infinite;
+}
+@keyframes wheelTitleBob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.04); }
+}
+
+.wheel-earned {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 15px 6px 9px;
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, #ffe27a, var(--gold));
+  color: #4a3b00;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 3px #0a0c4d, 0 0 22px rgba(255, 177, 0, 0.55);
+  animation: wheelEarnedPulse 1.6s ease-in-out infinite;
+}
+.wheel-earned .coin-icon { width: 22px; height: 22px; flex-shrink: 0; }
+@keyframes wheelEarnedPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.wheel-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+/* ---------- Roue ---------- */
+.wheel-stage-slot { padding: 6px 0 2px; }
+.wheel-stage {
+  position: relative;
+  width: var(--wheel-size);
+  height: var(--wheel-size);
+}
+.wheel-glow {
+  position: absolute;
+  inset: -16%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 214, 90, 0.62) 0%, rgba(255, 140, 40, 0.28) 45%, rgba(255, 140, 40, 0) 70%);
+  animation: wheelGlowPulse 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+.wheel-stage.is-spinning .wheel-glow { animation-duration: 0.7s; }
+@keyframes wheelGlowPulse {
+  0%, 100% { transform: scale(0.94); opacity: 0.75; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+.wheel-disc,
+.wheel-rim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.wheel-disc {
+  z-index: 1;
+  will-change: transform;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45));
+}
+.wheel-rim { z-index: 2; pointer-events: none; }
+
+.wheel-bulb {
+  fill: #fff6c4;
+  animation: wheelBulb 900ms ease-in-out infinite;
+}
+.wheel-bulb:nth-of-type(even) { animation-delay: 450ms; }
+.wheel-stage.is-spinning .wheel-bulb { animation-duration: 240ms; }
+.wheel-stage.is-spinning .wheel-bulb:nth-of-type(even) { animation-delay: 120ms; }
+.wheel-stage.is-landed .wheel-bulb { animation-duration: 380ms; }
+@keyframes wheelBulb {
+  0%, 100% { fill: #fff6c4; opacity: 1; }
+  50% { fill: #ff9f1a; opacity: 0.55; }
+}
+
+.wheel-seg { transition: opacity 300ms ease; }
+.wheel-disc.has-win .wheel-seg:not(.is-win) { opacity: 0.32; }
+.wheel-seg.is-win {
+  transform-origin: 50% 50%;
+  transform-box: view-box;
+  animation: wheelSegWin 700ms ease-in-out infinite;
+}
+@keyframes wheelSegWin {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.045); filter: brightness(1.3); }
+}
+
+.wheel-pointer {
+  position: absolute;
+  left: 50%;
+  top: -5%;
+  width: 14%;
+  z-index: 3;
+  transform: translateX(-50%);
+  transform-origin: 50% 30%;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+.wheel-pointer svg { display: block; width: 100%; height: auto; }
+.wheel-pointer.flick { animation: wheelPointerFlick 140ms ease-out; }
+@keyframes wheelPointerFlick {
+  0% { transform: translateX(-50%) rotate(0deg); }
+  35% { transform: translateX(-50%) rotate(-24deg); }
+  100% { transform: translateX(-50%) rotate(0deg); }
+}
+
+/* ---------- Boutons du pop-up ---------- */
+.wheel-spin-btn {
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 300px);
+  padding: 15px 18px;
+  border: none;
+  border-radius: 20px;
+  color: #4a3b00;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background-color: var(--yellow);
+  background-image: linear-gradient(180deg, #ffe680, var(--yellow));
+  box-shadow: var(--candy-inset), var(--chunk), 0 0 0 4px #0a0c4d, 0 0 34px rgba(252, 196, 0, 0.7);
+  animation: boostPulse 1.4s ease-in-out infinite, ctaBounce 2.3s ease-in-out infinite;
+  transition: filter 120ms ease;
+}
+.wheel-spin-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 36%;
+  height: 100%;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-18deg);
+  animation: fxShine 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.wheel-spin-btn:active { transform: translateY(3px) scale(0.97); animation: none; }
+.wheel-spin-btn.is-spinning,
+.wheel-spin-btn:disabled {
+  animation: none;
+  filter: saturate(0.7) brightness(0.92);
+  pointer-events: none;
+}
+.wheel-spin-btn.is-spinning::after { display: none; }
+/* Tour payant en pub (boutique) : teinte "pub" du jeu (bleu/marque). */
+.wheel-spin-btn.is-ad {
+  color: #ffffff;
+  background-color: var(--brand-blue);
+  background-image: linear-gradient(180deg, var(--brand-blue-light), var(--brand-blue));
+  box-shadow: var(--candy-inset), var(--chunk), 0 0 0 4px #0a0c4d, 0 0 26px rgba(11, 205, 253, 0.55);
+  font-size: 19px;
+}
+
+.wheel-hint {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-align: center;
+}
+.wheel-skip {
+  border: none;
+  background: none;
+  background-image: none;
+  padding: 8px 18px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13.5px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 200ms ease;
+}
+.wheel-skip.is-hidden { opacity: 0; pointer-events: none; }
+
+/* ---------- Annonce du résultat ---------- */
+.wheel-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 246;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 6, 15, 0);
+}
+.wheel-result-overlay.show { background: rgba(5, 6, 15, 0.72); }
+.wheel-result-overlay.out { background: rgba(5, 6, 15, 0); }
+
+.wheel-result-card {
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 310px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 26px 20px 20px;
+  border-radius: 28px;
+  text-align: center;
+  background-color: var(--cream);
+  background-image: linear-gradient(180deg, #ffffff, #f7efdc);
+  color: var(--ink);
+  box-shadow: var(--candy-inset), var(--shadow), var(--chunk), 0 0 0 4px #0a0c4d;
+  opacity: 0;
+  transform: scale(0.5) translateY(30px) rotate(-5deg);
+}
+.wheel-result-overlay.show .wheel-result-card {
+  animation: wheelResultPop 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.wheel-result-overlay.out .wheel-result-card { animation: trophyRevealOut 220ms ease forwards; }
+@keyframes wheelResultPop {
+  0% { transform: scale(0.5) translateY(30px) rotate(-5deg); opacity: 1; }
+  55% { transform: scale(1.07) translateY(-6px) rotate(2deg); opacity: 1; }
+  78% { transform: scale(0.97) translateY(2px) rotate(-1deg); }
+  100% { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
+}
+.wheel-result-card.is-win { background-image: linear-gradient(180deg, #fff6c9, #ffe27a); }
+.wheel-result-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 100%);
+  animation: shine 2.2s ease-in-out infinite 500ms;
+  pointer-events: none;
+}
+
+.wheel-result-icon {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  background-image: linear-gradient(180deg, #fff2a8, var(--gold));
+  box-shadow: 0 0 0 4px #0a0c4d, 0 0 28px rgba(255, 177, 0, 0.7);
+  animation: wheelIconSpin 900ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both, wheelIconBob 1.8s ease-in-out 960ms infinite;
+}
+.wheel-result-icon .coin-icon { width: 54px; height: 54px; }
+.wheel-result-icon.ad {
+  color: #ffffff;
+  background-image: linear-gradient(180deg, #ff8dc6, var(--brand-pink));
+  box-shadow: 0 0 0 4px #0a0c4d, 0 0 28px rgba(252, 56, 141, 0.7);
+}
+.wheel-result-icon.ad .svg-icon { width: 50px; height: 50px; stroke-width: 1.7; }
+@keyframes wheelIconSpin {
+  0% { transform: scale(0.3) rotate(-160deg); opacity: 1; }
+  70% { transform: scale(1.12) rotate(12deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes wheelIconBob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.06); }
+}
+
+.wheel-result-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background-image: linear-gradient(90deg, #ff2e63, #ff8a00, #ffb100, #22c8a8, #7c5cff, #ff2e63);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: legendaryShimmer 2s linear infinite;
+}
+.wheel-result-kind {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--muted);
+  line-height: 1.3;
+}
+.wheel-result-card.is-win .wheel-result-kind { color: #6b5200; }
+.wheel-result-amount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ink);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+  animation: wheelAmountPulse 1.2s ease-in-out infinite;
+}
+.wheel-result-amount .coin-icon { width: 38px; height: 38px; flex-shrink: 0; }
+@keyframes wheelAmountPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+.wheel-result-unit {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.wheel-result-card.is-win .wheel-result-unit { color: #6b5200; }
+
+.wheel-result-btn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  transition: transform 90ms ease;
+}
+.wheel-result-btn:active { transform: translateY(2px) scale(0.97); animation: none; }
+.wheel-result-btn .svg-icon { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+.wheel-result-collect {
+  color: #ffffff;
+  background-image: linear-gradient(180deg, var(--green-bright), var(--green));
+  box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 3px #0a0c4d;
+  animation: boostPulse 1.4s ease-in-out infinite;
+}
+.wheel-result-watch {
+  color: #4a3b00;
+  background-image: linear-gradient(180deg, #ffe680, var(--yellow));
+  box-shadow: var(--candy-inset), var(--chunk-small), 0 0 0 3px #0a0c4d, 0 0 22px rgba(252, 196, 0, 0.6);
+  animation: boostPulse 1.3s ease-in-out infinite, ctaBounce 2.3s ease-in-out infinite;
+}
+.wheel-result-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 36%;
+  height: 100%;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-18deg);
+  animation: fxShine 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.wheel-result-decline {
+  margin-top: 6px;
+  border: none;
+  background: none;
+  background-image: none;
+  padding: 8px 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Confettis ---------- */
+.wheel-confetti {
+  position: fixed;
+  z-index: 248;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: wheelConfettiFly 1500ms cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+}
+@keyframes wheelConfettiFly {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
+}
+
+/* ---------- Carte de la boutique ---------- */
+.market-wheel-card {
+  position: relative;
+  overflow: hidden;
+  margin-top: 14px;
+  padding: 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border-radius: 24px;
+  background-color: #1a1250;
+  background-image:
+    radial-gradient(circle at 50% 46%, rgba(255, 214, 90, 0.2), rgba(255, 214, 90, 0) 62%),
+    linear-gradient(180deg, #2f1f86, #170f4a);
+  box-shadow: var(--candy-inset), var(--chunk), 0 0 0 3px #0a0c4d;
+}
+/* Halo fixe (round fluidité) : l'ancienne version animait un gros
+   `box-shadow` flou sur une carte entière, repeint à chaque image pendant
+   le défilement de la boutique. Le statut "gratuit" garde, lui, sa
+   pulsation (transform). */
+.market-wheel-card.is-free-ready {
+  box-shadow: var(--candy-inset), var(--chunk), 0 0 0 3px #0a0c4d, 0 0 22px rgba(255, 214, 90, 0.6);
+}
+.market-wheel-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.market-wheel-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background-image: linear-gradient(90deg, #ff2e63, #ffb100, #22e6c8, #7c5cff, #ff2e63);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: legendaryShimmer 2.6s linear infinite;
+}
+.market-wheel-status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  box-shadow: 0 0 0 2px rgba(10, 12, 77, 0.5);
+}
+.market-wheel-card.is-free-ready .market-wheel-status {
+  background-image: linear-gradient(180deg, var(--green-bright), var(--green));
+  color: #04310f;
+  animation: boostPulse 1.3s ease-in-out infinite;
+}
+.market-wheel-sub {
+  align-self: flex-start;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.market-wheel-card .wheel-stage { --wheel-size: min(66vw, 250px); }
+.market-wheel-card .wheel-spin-btn { font-size: 19px; padding: 12px 14px; }
+.market-wheel-card .wheel-rays { display: none; }
+
+@media (max-height: 700px) {
+  :root { --wheel-size: min(74vw, 290px, 38svh); }
+  .wheel-title { font-size: 27px; }
+  .wheel-spin-btn { padding: 12px 16px; font-size: 21px; }
+  .wheel-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel-rays, .wheel-sparkles { display: none; }
+}
