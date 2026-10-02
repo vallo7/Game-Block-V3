@@ -48,6 +48,7 @@ import { Marketplace } from "./ui/marketplace.js";
 import { Quests } from "./services/quests.js";
 import { QuestsUI } from "./ui/quests.js";
 import { LuckyWheel } from "./ui/wheel.js";
+import { Press } from "./ui/press.js";
 
 export const App = {
   lastBackPress: 0,
@@ -71,6 +72,9 @@ export const App = {
     Marketplace.init();
     Quests.init();
     QuestsUI.init();
+    // Thème en vente -> "Acheter" ouvre la Marketplace sur sa carte.
+    VisualTheme.setBuyHandler((themeId) => Marketplace.openPage({ focusTheme: themeId }));
+
     this.bindUI();
     this.bindBackButton();
     this.bindButtonPop();
@@ -114,6 +118,10 @@ export const App = {
     Object.values(Environments).forEach(env => {
       items.push(env.assets.bestScoreFrame);
     });
+
+    // Fond vidéo éventuel du thème actif (sondé, jamais bloquant : absent
+    // = l'image reste, cf. services/visualtheme.js).
+    items.push(...VisualTheme.getVideoAssets());
 
     return items;
   },
@@ -173,6 +181,7 @@ export const App = {
   bindVisibility() {
     document.addEventListener("visibilitychange", () => {
       GameAudio.handleVisibility();
+      VisualTheme.handleVisibility(document.hidden);
 
       // Partie en cours conservée dès que l'app quitte le premier plan
       // (core/game-persist.js).
@@ -184,6 +193,8 @@ export const App = {
     if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App) {
       Capacitor.Plugins.App.addListener("appStateChange", (state) => {
         if (state && typeof state.isActive === "boolean") {
+          VisualTheme.handleVisibility(!state.isActive);
+
           if (!state.isActive) {
             Game.persistRunNow();
             GameAudio.stopMusic();
@@ -283,17 +294,12 @@ export const App = {
     this.lastBackPress = now;
     Haptics.vibrate(10);
   },
+  // Retour d'appui UNIFIÉ (son + rebond + micro-délai) de tous les
+  // éléments cliquables, et protection contre les clics accidentels
+  // (ui/press.js) — remplace l'ancien rebond posé ici, qui n'avait ni
+  // délai ni son et ne couvrait que les <button>.
   bindButtonPop() {
-    document.addEventListener("click", (event) => {
-      const button = event.target.closest ? event.target.closest("button") : null;
-      if (!button) return;
-      button.classList.remove("btn-pop");
-      void button.offsetWidth;
-      button.classList.add("btn-pop");
-      setTimeout(() => {
-        button.classList.remove("btn-pop");
-      }, 320);
-    }, true);
+    Press.init();
   },
   // ---------- Phase 5 (Coins, Trophées, Marketplace) ----------
   bindEconomyUI() {
@@ -303,11 +309,10 @@ export const App = {
     const trophyBtn = document.getElementById("trophyBtn");
     const marketplaceBtn = document.getElementById("marketplaceBtn");
 
+    // Le son et le micro-délai d'appui sont gérés par ui/press.js.
     const openMarketplace = () => {
-      GameAudio.unlock();
-      GameAudio.playClick();
       Haptics.vibrate(15);
-      setTimeout(() => Marketplace.openPage(), 160);
+      Marketplace.openPage();
     };
 
     if (coinBtn) coinBtn.addEventListener("click", openMarketplace);
@@ -316,10 +321,8 @@ export const App = {
 
     if (trophyBtn) {
       trophyBtn.addEventListener("click", () => {
-        GameAudio.unlock();
-        GameAudio.playClick();
         Haptics.vibrate(15);
-        setTimeout(() => Trophies.openPage(), 160);
+        Trophies.openPage();
       });
     }
 
@@ -375,42 +378,29 @@ export const App = {
     const aboutUsBackBtn = document.getElementById("aboutUsBackBtn");
     const bestScore = document.querySelector(".best-score");
     const availablePill = document.getElementById("availablePill");
+    // Son + rebond + micro-délai d'appui : ui/press.js (plus de
+    // temporisation locale avant d'agir).
     bestScore.addEventListener("click", () => {
-      GameAudio.unlock();
-      GameAudio.playClick();
       this.celebrateEl(bestScore);
       this.confetti(bestScore);
     });
     availablePill.addEventListener("click", () => {
-      GameAudio.unlock();
-      GameAudio.playClick();
       this.celebrateEl(availablePill);
     });
     settingsBtn.addEventListener("click", () => {
-      GameAudio.unlock();
-      GameAudio.playClick();
-      setTimeout(() => {
-        this.openSettings();
-      }, 160);
+      this.openSettings();
     });
     settingsCloseBtn.addEventListener("click", () => {
-      GameAudio.playClick();
       this.closeSettings();
     });
     settingsHomeBtn.addEventListener("click", () => {
-      GameAudio.playClick();
-      setTimeout(() => {
-        this.closeSettings();
-        this.goToMenu();
-      }, 200);
+      this.closeSettings();
+      this.goToMenu();
     });
     settingsRestartBtn.addEventListener("click", async () => {
-      GameAudio.playClick();
       await Ads.maybeShowInterstitial(ADS.RESTART_CHANCE);
-      setTimeout(() => {
-        this.closeSettings();
-        Game.startNewGameSequence();
-      }, 200);
+      this.closeSettings();
+      Game.startNewGameSequence();
     });
     settingsOverlay.addEventListener("click", (event) => {
       if (event.target === settingsOverlay) {
@@ -504,11 +494,9 @@ export const App = {
     Ads.hideBanner();
     RateUs.maybeShowOnMenu();
     VisualTheme.applyBackground("menu");
-    // Le fond de l'accueil reprend désormais le même effet de
-    // "respiration"/pan lent que le fond de jeu (demande explicite,
-    // 4e passe) — auparavant réservé à showGame(), voir background.css
-    // #bgDepthPan.
-    VisualTheme.setDepthActive(true);
+    // Plus aucun mouvement sur les fonds (demande explicite) : l'ancien
+    // pan lent "bgDepthPan" a été supprimé. Les fonds peuvent en
+    // revanche être des vidéos (services/visualtheme.js).
     this.updateMenuBestScore();
     QuestsUI.maybeShowReminder();
   },
@@ -539,7 +527,6 @@ export const App = {
     VisualTheme.applyBackground("game");
     Game.start();
     Ads.showBanner();
-    VisualTheme.setDepthActive(true);
   },
   openSettings() {
     Game.pause();
