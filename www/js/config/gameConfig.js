@@ -211,15 +211,25 @@ export const COINS = {
 // (filière 2, combo x8), pas par un prix ici (voir
 // services/visualtheme.js#UNLOCKS et core/game-rules.js).
 //
-// AD_OFFERS (section "Recharge Coins") : 10 offres "regarde N pubs, gagne
-// X Coins", plus ou moins généreuses (de 15 à 60 Coins par pub). La
-// boutique en propose OFFER_SLOTS à la fois, tirées au hasard
-// (services/adoffers.js) — au moins une offre courte (<= SHORT_OFFER_MAX_ADS
-// pubs) est toujours proposée pour ne jamais enfermer le joueur dans des
-// offres longues. Une fois toutes les offres affichées récupérées, la
-// liste se renouvelle seule. FREE_REFRESHES = nombre d'actualisations
-// gratuites par session (remis à zéro à chaque démarrage de l'app) ; les
-// suivantes coûtent 1 pub.
+// AD_OFFERS (section "Recharge Coins") : 6 offres "regarde N pubs, gagne
+// X Coins". Révision (demande explicite) : l'offre la plus coûteuse en
+// pubs en demande désormais 3 MAX (les anciennes offres à 4 et 5 pubs
+// sont supprimées), les offres à 3 pubs rapportent 5x leur ancien montant
+// et les offres à moins de 3 pubs 3x.
+//   - `weight` = rareté : plus il est bas, plus l'offre est rare. Les deux
+//     offres à 3 pubs sont volontairement les plus rares (la 600 Coins est
+//     la plus rare de toutes : ~4 % des tirages, contre ~12 % pour celle
+//     à 300 Coins) ; les offres courtes restent fréquentes.
+//   - REPEAT_WEIGHT_FACTOR : une offre déjà affichée au tirage précédent
+//     pèse ce facteur en moins au tirage suivant (variété sans jamais
+//     l'interdire, ce qui préserve la rareté voulue).
+// La boutique en propose OFFER_SLOTS à la fois, tirées au hasard avec ces
+// poids (services/adoffers.js) — au moins une offre courte
+// (<= SHORT_OFFER_MAX_ADS pubs) est toujours proposée pour ne jamais
+// enfermer le joueur dans des offres longues. Une fois toutes les offres
+// affichées récupérées, la liste se renouvelle seule. FREE_REFRESHES =
+// nombre d'actualisations gratuites par session (remis à zéro à chaque
+// démarrage de l'app) ; les suivantes coûtent 1 pub.
 export const MARKETPLACE = {
   DEFAULT_THEME_PRICE: 2500,
   THEME_PRICES: {
@@ -229,21 +239,18 @@ export const MARKETPLACE = {
   OFFER_SLOTS: 3,
   FREE_REFRESHES: 1,
   SHORT_OFFER_MAX_ADS: 2,
+  REPEAT_WEIGHT_FACTOR: 0.5,
   // Seuils de "Coins par pub" pour la teinte des cartes d'offre
-  // (services/adoffers.js#getTier) : < 20 base, < 30 vert, < 45 or, sinon
+  // (services/adoffers.js#getTier) : < 60 base, < 95 vert, < 150 or, sinon
   // violet + pastille "meilleure offre".
-  TIER_THRESHOLDS: [20, 30, 45],
+  TIER_THRESHOLDS: [60, 95, 150],
   AD_OFFERS: [
-    { id: "offer-1", ads: 1, coins: 15 },
-    { id: "offer-2", ads: 1, coins: 25 },
-    { id: "offer-3", ads: 2, coins: 35 },
-    { id: "offer-4", ads: 2, coins: 60 },
-    { id: "offer-5", ads: 3, coins: 60 },
-    { id: "offer-6", ads: 3, coins: 120 },
-    { id: "offer-7", ads: 4, coins: 100 },
-    { id: "offer-8", ads: 4, coins: 200 },
-    { id: "offer-9", ads: 5, coins: 175 },
-    { id: "offer-10", ads: 5, coins: 300 }
+    { id: "offer-1", ads: 1, coins: 45, weight: 4 },
+    { id: "offer-2", ads: 1, coins: 75, weight: 3 },
+    { id: "offer-3", ads: 2, coins: 105, weight: 3 },
+    { id: "offer-4", ads: 2, coins: 180, weight: 2 },
+    { id: "offer-5", ads: 3, coins: 300, weight: 0.3 },
+    { id: "offer-6", ads: 3, coins: 600, weight: 0.1 }
   ]
 };
 
@@ -329,6 +336,34 @@ export const QUESTS = {
     { id: "games", track: "games", targets: [2, 3, 5], reward: [8, 14, 20] },
     { id: "watchAds", track: "watchAd", targets: [1, 2, 3], reward: [8, 12, 18] }
   ]
+};
+
+// ---------- Mouvement vivant de l'écran de jeu (core/game-motion.js) ----------
+// Réglages du système d'animation individuelle de la grille, des blocs, du
+// compteur de meilleur score, du bouton pause et du compteur de blocs.
+// Toutes les amplitudes sont volontairement faibles : le mouvement doit se
+// sentir, jamais gêner la lecture ni le geste. Les unités "cell" sont des
+// fractions de la taille d'une case.
+export const MOTION = {
+  // Amplitude du mouvement de repos des blocs (cell) : calme -> tendu
+  // (grille presque pleine). Interpolée par la "tension" de la partie.
+  BLOCK_IDLE_CALM: 0.013,
+  BLOCK_IDLE_TENSE: 0.027,
+  // Les blocs de pierre/glace sont "lourds" : ils bougent moins.
+  OBSTACLE_IDLE_FACTOR: 0.35,
+  // Remplissage de la grille à partir duquel la tension monte (0 -> 1).
+  TENSION_FROM_FILL: 0.42,
+  TENSION_TO_FILL: 0.88,
+  // Battement de la grille quand la tension est haute (Hz, amplitude).
+  HEARTBEAT_HZ_CALM: 0.9,
+  HEARTBEAT_HZ_TENSE: 2.3,
+  HEARTBEAT_SCALE: 0.0045,
+  // Intervalle (s) entre deux "trouvailles" spontanées, avant adaptation
+  // à l'énergie de la partie.
+  FLOURISH_MIN_S: 2.2,
+  FLOURISH_MAX_S: 6.5,
+  // File d'impulsions différées (ondes qui traversent la grille).
+  MAX_QUEUED_IMPULSES: 400
 };
 
 // ---------- Trophées : valeurs par défaut des statistiques à vie
